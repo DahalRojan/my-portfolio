@@ -181,7 +181,7 @@ body {
     align-items: center;
     justify-content: center;
     position: relative; /* Needed for the overlay */
-    background: url('../imgs/back.jpg') no-repeat center center/cover; /* CHANGE 'back.jpg' TO YOUR IMAGE */
+    background: url('../imgs/background.jpg') no-repeat center center/cover; /* CHANGE 'back.jpg' TO YOUR IMAGE */
     color: #fff; /* Text color is now white for contrast */
 }
 
