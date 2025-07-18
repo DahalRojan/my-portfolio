@@ -1,28 +1,25 @@
-// assets/js/script.js
-
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- Theme Switcher ---
     const themeToggle = document.getElementById('theme-toggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    let currentTheme = localStorage.getItem('theme');
+    
+    // ========== UPDATED LINE ==========
+    // Set initial theme based on local storage, defaulting to 'dark'
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
 
-    if (currentTheme) {
-        document.documentElement.setAttribute('data-theme', currentTheme);
-    } else {
-        currentTheme = prefersDark.matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', currentTheme);
-    }
-
-    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+    // Update icon based on the current theme
+    if (currentTheme === 'dark') {
         themeToggle.classList.replace('ti-light-bulb', 'ti-shine');
     }
 
+    // Handle theme toggle click
     themeToggle.addEventListener('click', () => {
         let newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
 
+        // Update icon
         if (newTheme === 'dark') {
             themeToggle.classList.replace('ti-light-bulb', 'ti-shine');
         } else {
@@ -72,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- ================== NEW: Contact Form Handling ================== ---
+    // --- Contact Form Handling ---
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
 
@@ -108,5 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    form.addEventListener("submit", handleSubmit);
+    if(form) {
+      form.addEventListener("submit", handleSubmit);
+    }
 });
