@@ -39,7 +39,7 @@ A modern, responsive portfolio website showcasing my work as an AI/ML Engineer a
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YourUsername/my-portfolio.git
+   git clone https://github.com/DahalRojan/my-portfolio.git
    ```
 
 2. Navigate to the project directory:
