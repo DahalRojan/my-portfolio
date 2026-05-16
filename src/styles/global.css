@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* Display: editorial serif — Instrument Serif (roman + italic only) */
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+
+/* Body: IBM Plex Sans */
+@import "@fontsource/ibm-plex-sans/300.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+
+/* Mono: JetBrains Mono */
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+@theme {
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "IBM Plex Mono", "Menlo", monospace;
+
+  /* Palette — warm near-black, saffron primary, electric cyan secondary */
+  --color-bg: #0a0908;
+  --color-bg-elev: #100e0c;
+  --color-surface: #15130f;
+  --color-border: rgba(255, 240, 220, 0.07);
+  --color-border-strong: rgba(255, 240, 220, 0.14);
+  --color-ink: #f5f2ed;
+  --color-ink-dim: #a09691;
+  --color-ink-mute: #5f5852;
+
+  --color-accent: #ffb547;        /* saffron amber — primary */
+  --color-accent-dim: #d9912d;
+  --color-accent-cool: #7df9ff;   /* electric cyan — secondary, sparing */
+  --color-accent-coral: #ff6b7a;  /* coral — rare emphasis */
+  --color-danger: #ff6b7a;
+
+  --content-max: 1280px;
+}
+
+@layer base {
+  :root { color-scheme: dark; }
+
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Lenis manages scroll; default scroll-behavior is fine for fallback. */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100dvh;
+    line-height: 1.55;
+    position: relative;
+    background: var(--color-bg);
+  }
+
+  /* Subtle film grain over everything for atmosphere */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    html { scroll-behavior: auto !important; }
+  }
+}
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .display-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "ss02";
+    font-weight: 400;
+  }
+
+  .container-x {
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding-inline: clamp(20px, 4vw, 48px);
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 180ms;
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  .tabnums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+/* Pulse dot */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Main container ensures the content sits above the fixed canvas (z:0) and grain (z:30) */
+main { position: relative; z-index: 1; }

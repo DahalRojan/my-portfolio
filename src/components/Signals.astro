@@ -1,0 +1,69 @@
+---
+import SectionPanel from "./SectionPanel.astro";
+import { skillRows } from "../content/skills";
+---
+<SectionPanel
+  id="signals"
+  number="02"
+  label="Signals"
+  kicker="L2 — what I actually reach for"
+  title="The tools that survive contact with production."
+>
+  <div class="rows">
+    {skillRows.map((row) => (
+      <div class="row">
+        <div class="row-head">
+          <h3 class="row-label display">{row.label}</h3>
+          <p class="row-tag">{row.tagline}</p>
+        </div>
+        <ul class="chips">
+          {row.items.map((item) => (
+            <li class="chip mono">{item}</li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</SectionPanel>
+
+<style>
+  .rows { display: grid; gap: clamp(36px, 6vh, 72px); }
+  .row { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 900px) {
+    .row { grid-template-columns: 220px 1fr; gap: 36px; align-items: start; }
+  }
+  .row-head { max-width: 220px; }
+  .row-label {
+    font-size: 22px;
+    line-height: 1.15;
+    color: var(--color-ink);
+    margin: 0;
+  }
+  .row-tag {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-ink-dim);
+  }
+  .chips {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    padding: 7px 11px;
+    color: var(--color-ink);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+    transition: border-color 180ms, color 180ms, transform 180ms;
+  }
+  .chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+</style>

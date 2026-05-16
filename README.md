@@ -1,112 +1,104 @@
-# Rojan Dahal - Portfolio
+# rojandahal.com
 
-A modern, responsive portfolio website showcasing my work as an AI/ML Engineer and Data Scientist.
+Personal portfolio of **Rojan Dahal** — AI / ML Engineer · Production AI Systems.
 
-## 🚀 Features
+The site is a **scroll-driven WebGL experience** of the Gatekeeper architecture I'm currently shipping at TitanCloud. Visitors scroll *through* a 3D pipeline (4 translucent gate slabs, a document particle, a Bedrock orb) while reading my work. The metaphor is the work.
 
-- **Responsive Design**: Optimized for all devices and screen sizes
-- **Dark/Light Theme**: Toggle between themes with preference persistence
-- **Smooth Animations**: Intersection Observer API for scroll-based animations
-- **Contact Form**: Integrated with Formspree for seamless message handling
-- **Modern UI**: Clean, professional design with smooth transitions
+## Stack
 
-## 🛠️ Technologies Used
+| Layer            | Choice                                                                |
+| ---------------- | --------------------------------------------------------------------- |
+| Framework        | **Astro 5** (static, React islands)                                   |
+| Type system      | **TypeScript** strict                                                 |
+| Styling          | **Tailwind CSS v4** (Vite plugin)                                     |
+| 3D               | **three.js + React Three Fiber + drei** (lazy-loaded chunk)           |
+| Motion           | **GSAP + ScrollTrigger** (camera choreography) · **Lenis** (smooth scroll) |
+| Type             | **Instrument Serif** (display) · **IBM Plex Sans** (body) · **JetBrains Mono** (mono) — all self-hosted via `@fontsource` |
+| Deploy           | **Cloudflare Pages**, auto-deploy on push to `main`                   |
 
-- **HTML5**: Semantic markup structure
-- **CSS3**: Custom properties, Grid, Flexbox, and modern styling
-- **JavaScript (ES6+)**: Vanilla JS with modern features
-- **Themify Icons**: Icon library for UI elements
-- **Google Fonts**: Poppins font family
-- **Formspree**: Contact form handling
+## Running locally
 
-## 📱 Sections
-
-- **Home**: Hero section with introduction
-- **About**: Personal information and background
-- **Resume**: Professional experience, education, and skills
-- **Projects**: Academic and research projects
-- **Contact**: Get in touch form
-
-## 🎨 Design Features
-
-- CSS custom properties for consistent theming
-- Backdrop filter effects for modern glass morphism
-- Hover animations and transitions
-- Mobile-first responsive design
-- Accessibility considerations with proper semantic HTML
-
-## 🚀 Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/DahalRojan/my-portfolio.git
-   ```
-
-2. Navigate to the project directory:
-   ```bash
-   cd my-portfolio
-   ```
-
-3. Open `index.html` in your browser or serve using a local server:
-   ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Using Node.js
-   npx serve .
-   ```
-
-## 📂 Project Structure
-
-```
-my-portfolio/
-├── assets/
-│   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   └── script.js
-│   ├── imgs/
-│   │   ├── background.jpg
-│   │   ├── front.jpg
-│   │   ├── icon.jpg
-│   │   └── icon2.png
-│   ├── vendors/
-│   │   ├── bootstrap/
-│   │   ├── isotope/
-│   │   ├── jquery/
-│   │   └── themify-icons/
-│   └── Resume - Rojan Dahal.pdf
-├── index.html
-└── README.md
+```bash
+npm install
+npm run dev       # http://localhost:4321
+npm run build     # production output → dist/
+npm run preview   # serve dist/ locally
 ```
 
-## ⚡ Performance
+## Project layout
 
-- Optimized images and assets
-- Efficient CSS with minimal redundancy
-- Modern JavaScript with no external dependencies for core functionality
-- Lazy loading animations with Intersection Observer
+```
+src/
+  pages/index.astro              # single-page site
+  layouts/Base.astro             # head, meta, OG, JSON-LD
+  scene/
+    PipelineScene.tsx            # the WebGL scene (Three + R3F + custom shader)
+    PipelineFallback.astro       # static SVG used under prefers-reduced-motion
+  components/
+    Nav.astro
+    Hero.astro
+    SectionPanel.astro           # shared header + body wrapper
+    About.astro                  # 01 / Rules
+    Signals.astro                # 02 / Signals
+    CaseCard.astro
+    Work.astro                   # 03 / Inference
+    Research.astro               # 04 / Decision
+    Contact.astro                # 05 / Output
+    SceneHost.astro              # mounts scene OR fallback based on motion pref
+  content/
+    cases.ts                     # 4 case studies (TitanCloud, Gannon GA, Gannon Research, BitsKraft)
+    skills.ts                    # 5 skill rows
+    publications.ts              # NAMRC paper + certifications
+  lib/
+    smooth-scroll.ts             # Lenis + GSAP ticker
+  styles/global.css              # tokens, type, helpers
+public/
+  resume.pdf                     # mirror of assets/Resume_Rojan_Dahal.pdf
+  front.jpg · icon2.png · og.svg · robots.txt
+docs/superpowers/specs/2026-05-16-portfolio-redesign-design.md   # design spec
+```
 
-## 🌟 Customization
+## Editing content
 
-To customize this portfolio for your own use:
+All copy is typed data — no JSX to touch.
 
-1. Replace personal information in `index.html`
-2. Update the resume PDF in `assets/`
-3. Replace images in `assets/imgs/`
-4. Modify colors and styling in `assets/css/style.css`
-5. Update contact form action URL in the HTML
+| Need to change            | File                              |
+| ------------------------- | --------------------------------- |
+| Case studies              | `src/content/cases.ts`            |
+| Skills (signal rows)      | `src/content/skills.ts`           |
+| Publication + certs       | `src/content/publications.ts`     |
+| Hero copy                 | `src/components/Hero.astro`       |
+| About prose               | `src/components/About.astro`      |
+| Contact / footer          | `src/components/Contact.astro`    |
+| 3D scene (slabs, camera)  | `src/scene/PipelineScene.tsx`     |
 
-## 📄 License
+## Performance
 
-This project is open source and available under the [MIT License](LICENSE).
+| Asset                                       | Size (gz)   |
+| ------------------------------------------- | ----------- |
+| HTML (`/`)                                  | ~10 KB      |
+| First-paint JS (Astro + Lenis + ScrollTrigger + React shell) | ~113 KB     |
+| **Lazy 3D chunk** (Three + R3F + drei + scene) | **~243 KB** |
 
-## 📞 Contact
+The 3D chunk hydrates `client:visible`, so the hero text and the section content render with the SSR'd HTML. A static SVG fallback is rendered under `prefers-reduced-motion: reduce`.
 
-- **Email**: rojandahal1026@gmail.com
-- **LinkedIn**: [linkedin.com/in/rojandahal](https://www.linkedin.com/in/rojandahal/)
-- **GitHub**: [github.com/DahalRojan](https://github.com/DahalRojan)
+## Accessibility
 
----
+- WCAG 2.2 AA contrast in dark mode.
+- `prefers-reduced-motion`: 3D scene + smooth scroll both disabled; the SVG pipeline fallback takes over.
+- Full keyboard navigation. Skip-to-content not implemented (single-page site, no header navigation interaction required).
+- Phone number masked (`+1 (220) 238-XX-XX`); email rendered in full.
 
-Built with ❤️ by Rojan Dahal
+## Deploy — Cloudflare Pages
+
+The repo is auto-deployed by **Cloudflare Pages** on push to `main`.
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Node version: 20 or newer
+
+`.gitignore` blocks `.claude/`, `.agents/`, `.remember/`, `node_modules/`, `.astro/`, `dist/`, and the legacy `index.html` + `assets/css|js|vendors`. Only production source ships to Cloudflare.
+
+## License
+
+Source MIT. Resume PDF, portrait, and personal copy © Rojan Dahal.

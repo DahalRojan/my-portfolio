@@ -1,0 +1,84 @@
+---
+/**
+ * A solid-ish panel that sits above the WebGL canvas for readability.
+ * Used for every section except the hero and contact.
+ */
+export interface Props {
+  id: string;
+  number: string;
+  label: string;
+  kicker?: string;
+  title: string;
+  /** When true, the panel uses a fully solid background instead of translucent. */
+  solid?: boolean;
+}
+
+const { id, number, label, kicker, title, solid = false } = Astro.props;
+---
+<section id={id} class={`panel ${solid ? "panel--solid" : ""}`}>
+  <div class="container-x">
+    <header class="panel-head">
+      <div class="rail mono text-[11px] tracking-widest uppercase">{number} / {label}</div>
+      <div class="head-content">
+        {kicker && <p class="kicker mono text-[11px] tracking-widest uppercase">{kicker}</p>}
+        <h2 class="title display">{title}</h2>
+      </div>
+    </header>
+    <div class="panel-body">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .panel {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(80px, 12vh, 140px);
+    background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--color-border);
+  }
+  .panel--solid {
+    background: var(--color-bg);
+  }
+  .panel-head {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: clamp(40px, 7vh, 80px);
+  }
+  @media (min-width: 768px) {
+    .panel-head {
+      grid-template-columns: 88px 1fr;
+      gap: 24px;
+      align-items: baseline;
+    }
+  }
+  .rail { color: var(--color-ink-mute); }
+  .kicker {
+    color: var(--color-ink-mute);
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: clamp(28px, 5vw, 52px);
+    line-height: 1.05;
+    color: var(--color-ink);
+    max-width: 880px;
+    margin: 0;
+  }
+  .panel-body {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .panel-body {
+      grid-template-columns: 88px 1fr;
+      gap: 24px;
+    }
+    .panel-body > :global(*) {
+      grid-column: 2;
+    }
+  }
+</style>

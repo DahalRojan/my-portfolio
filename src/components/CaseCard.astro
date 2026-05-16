@@ -1,0 +1,122 @@
+---
+import type { Case } from "../content/cases";
+
+export interface Props {
+  case: Case;
+  index: number;
+}
+
+const { case: c, index } = Astro.props;
+const num = String(index + 1).padStart(2, "0");
+---
+<article class="case" data-motif={c.motif}>
+  <header class="case-head">
+    <span class="case-num mono">{num}</span>
+    <div>
+      <p class="case-company mono">{c.company}</p>
+      <p class="case-role mono"><span class="role-accent">{c.role}</span> <span class="role-sep">·</span> {c.dates}</p>
+    </div>
+  </header>
+
+  <h3 class="case-headline display">{c.headline}</h3>
+
+  <ul class="bullets">
+    {c.bullets.map((b) => (
+      <li><span class="bullet-mark" aria-hidden="true">▸</span><span>{b}</span></li>
+    ))}
+  </ul>
+
+  <div class="meta">
+    <div class="meta-block">
+      <p class="meta-label mono">Stack</p>
+      <ul class="meta-chips">
+        {c.stack.map((s) => <li class="chip mono">{s}</li>)}
+      </ul>
+    </div>
+    <div class="meta-block">
+      <p class="meta-label mono">Scale</p>
+      <ul class="meta-chips">
+        {c.scale.map((s) => <li class="chip chip-accent mono">{s}</li>)}
+      </ul>
+    </div>
+  </div>
+</article>
+
+<style>
+  .case {
+    padding-block: clamp(40px, 7vh, 88px);
+    border-top: 1px solid var(--color-border);
+    display: grid; gap: 24px;
+  }
+  .case:first-child { border-top: 0; padding-top: 0; }
+
+  .case-head { display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-items: baseline; }
+  .case-num {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--color-ink-mute);
+    text-transform: uppercase;
+  }
+  .case-company {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--color-ink-dim);
+    text-transform: uppercase;
+  }
+  .case-role {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+    margin-top: 2px;
+  }
+  .role-accent { color: var(--color-accent); }
+  .role-sep { padding-inline: 6px; opacity: 0.5; }
+
+  .case-headline {
+    font-size: clamp(24px, 3.6vw, 38px);
+    line-height: 1.1;
+    color: var(--color-ink);
+    margin: 0;
+    max-width: 820px;
+  }
+
+  .bullets {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 14px;
+    max-width: 760px;
+  }
+  .bullets li {
+    display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: baseline;
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--color-ink);
+  }
+  .bullet-mark {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-ink-mute);
+  }
+
+  .meta { display: grid; gap: 18px; }
+  .meta-block { display: grid; gap: 10px; }
+  .meta-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--color-ink-mute);
+    text-transform: uppercase;
+  }
+  .meta-chips {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    font-size: 11px;
+    padding: 5px 9px;
+    color: var(--color-ink-dim);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  }
+  .chip-accent { color: var(--color-accent); border-color: rgba(159, 232, 112, 0.35); }
+</style>

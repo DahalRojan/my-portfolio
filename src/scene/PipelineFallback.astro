@@ -1,0 +1,64 @@
+---
+/**
+ * Static SVG fallback for prefers-reduced-motion or no-JS users.
+ * Renders an inert version of the Pipeline scene as a fixed background.
+ */
+---
+<div aria-hidden="true" class="pipeline-fallback">
+  <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="slab" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0a0a0b" stop-opacity="0.2"/>
+        <stop offset="1" stop-color="#ffb547" stop-opacity="0.15"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="0.7" cy="0.55" r="0.5">
+        <stop offset="0" stop-color="#ffb547" stop-opacity="0.25"/>
+        <stop offset="1" stop-color="#ffb547" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1200" height="800" fill="#0a0a0b"/>
+    <rect width="1200" height="800" fill="url(#glow)"/>
+
+    <!-- 4 stacked slabs in perspective -->
+    <g transform="translate(160 200) skewY(-6)" opacity="0.85">
+      <rect width="220" height="320" fill="url(#slab)" stroke="rgba(255,181,71,0.35)" stroke-width="1"/>
+    </g>
+    <g transform="translate(380 220) skewY(-6)" opacity="0.85">
+      <rect width="220" height="320" fill="url(#slab)" stroke="rgba(255,181,71,0.4)" stroke-width="1"/>
+    </g>
+    <g transform="translate(600 240) skewY(-6)" opacity="0.85">
+      <rect width="220" height="320" fill="url(#slab)" stroke="rgba(255,181,71,0.5)" stroke-width="1"/>
+    </g>
+    <g transform="translate(820 260) skewY(-6)" opacity="0.9">
+      <rect width="220" height="320" fill="url(#slab)" stroke="rgba(255,181,71,0.6)" stroke-width="1"/>
+    </g>
+
+    <!-- bedrock orb -->
+    <circle cx="1110" cy="440" r="36" fill="#13141a" stroke="#ffb547" stroke-width="1.2"/>
+
+    <!-- subtle grid dust -->
+    <g fill="rgba(190,200,210,0.35)">
+      <circle cx="140" cy="140" r="1"/>
+      <circle cx="320" cy="80" r="1"/>
+      <circle cx="540" cy="120" r="1"/>
+      <circle cx="900" cy="180" r="1"/>
+      <circle cx="280" cy="640" r="1"/>
+      <circle cx="700" cy="700" r="1"/>
+      <circle cx="1040" cy="640" r="1"/>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .pipeline-fallback {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .pipeline-fallback svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>

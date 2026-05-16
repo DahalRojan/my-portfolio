@@ -1,0 +1,36 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+import SceneHost from "../components/SceneHost.astro";
+import Hero from "../components/Hero.astro";
+import About from "../components/About.astro";
+import Signals from "../components/Signals.astro";
+import Work from "../components/Work.astro";
+import Research from "../components/Research.astro";
+import Contact from "../components/Contact.astro";
+import InferenceLog from "../components/InferenceLog";
+
+const title = "Rojan Dahal — AI / ML Engineer · Production AI Systems";
+const description =
+  "Rojan Dahal — AI Researcher and ML Engineer. Builder of the Gatekeeper at TitanCloud (4-layer hybrid classifier in front of an AWS Bedrock VLM extraction agent). MS Data Science, GPA 4.0. Open to full-time mid-2026.";
+---
+<Base title={title} description={description}>
+  <SceneHost />
+  <Nav />
+  <main>
+    <Hero />
+    <About />
+    <Signals />
+    <Work />
+    <Research />
+    <Contact />
+  </main>
+
+  <InferenceLog client:idle />
+
+
+  <script>
+    // Lenis + GSAP smooth-scroll setup (skipped under reduced motion).
+    import "../lib/smooth-scroll";
+  </script>
+</Base>

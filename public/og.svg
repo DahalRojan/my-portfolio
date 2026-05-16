@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0908"/>
+      <stop offset="1" stop-color="#13141a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.1" r="0.6">
+      <stop offset="0" stop-color="#ffb547" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffb547" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- top bar -->
+  <line x1="64" y1="80" x2="1136" y2="80" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="64" y="60" fill="#ffb547" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">● AVAILABLE FOR FULL-TIME · DEC 2025 GRAD</text>
+
+  <!-- section number -->
+  <text x="64" y="260" fill="#5b6068" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">00 / ENTRY</text>
+
+  <!-- display name -->
+  <text x="64" y="380" fill="#ececef" font-family="'Instrument Serif', 'Times New Roman', serif" font-size="140" letter-spacing="-3">Rojan <tspan font-style="italic">Dahal</tspan></text>
+
+  <!-- tagline -->
+  <text x="64" y="460" fill="#ececef" font-family="'IBM Plex Sans', system-ui, sans-serif" font-size="28">
+    <tspan>I build the systems that </tspan>
+    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">gate</tspan>
+    <tspan>, </tspan>
+    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">validate</tspan>
+    <tspan>, and </tspan>
+    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">govern</tspan>
+    <tspan> other AI systems.</tspan>
+  </text>
+
+  <!-- bottom rail -->
+  <line x1="64" y1="540" x2="1136" y2="540" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="64" y="580" fill="#9095a0" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">MS DATA SCIENCE · GPA 4.0 · 4+ YRS PRODUCTION ML</text>
+  <text x="1136" y="580" text-anchor="end" fill="#5b6068" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">rojandahal.com</text>
+</svg>

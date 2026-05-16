@@ -1,0 +1,65 @@
+---
+const links = [
+  { href: "#intake",    label: "00 / Intake" },
+  { href: "#rules",     label: "01 / Rules" },
+  { href: "#signals",   label: "02 / Signals" },
+  { href: "#inference", label: "03 / Inference" },
+  { href: "#decision",  label: "04 / Decision" },
+  { href: "#output",    label: "05 / Output" },
+];
+---
+<nav class="nav-bar">
+  <div class="container-x flex h-14 items-center justify-between gap-6">
+    <a href="#intake" class="brand mono text-[12px] tracking-wider">
+      <span class="brand-dot" aria-hidden="true"></span> R · DAHAL
+    </a>
+    <ul class="hidden md:flex items-center gap-6">
+      {links.slice(1).map((l) => (
+        <li>
+          <a href={l.href} class="nav-link mono text-[11px] tracking-widest uppercase">
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <a href="mailto:rojandahal1026@gmail.com" class="nav-cta mono text-[11px] tracking-widest uppercase">
+      [ get in touch ]
+    </a>
+  </div>
+  <div class="nav-rule"></div>
+</nav>
+
+<style>
+  .nav-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .brand { color: var(--color-ink); transition: color 180ms; }
+  .brand:hover { color: var(--color-accent); }
+  .brand-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    margin-right: 6px;
+    box-shadow: 0 0 8px var(--color-accent);
+  }
+  .nav-link {
+    color: var(--color-ink-dim);
+    transition: color 180ms;
+  }
+  .nav-link:hover { color: var(--color-ink); }
+  .nav-cta {
+    color: var(--color-ink-dim);
+    transition: color 180ms;
+  }
+  .nav-cta:hover { color: var(--color-accent); }
+  .nav-rule {
+    height: 1px; width: 100%;
+    background: var(--color-border);
+  }
+</style>

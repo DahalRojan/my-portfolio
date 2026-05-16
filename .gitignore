@@ -1,0 +1,47 @@
+# -- Build outputs (Cloudflare Pages builds these on its side) --
+dist/
+.astro/
+.output/
+.vercel/
+.wrangler/
+
+# -- Dependencies --
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -- Local tooling / agent state (never ship) --
+.claude/
+.agents/
+.remember/
+skills-lock.json
+
+# -- Env / secrets --
+.env
+.env.*
+!.env.example
+
+# -- Editor / OS --
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -- TypeScript / build caches --
+*.tsbuildinfo
+
+# -- Legacy static site (kept locally during migration; do not deploy) --
+# Once the Astro build is verified, these can be deleted from the working tree.
+assets/css/
+assets/js/
+assets/vendors/
+index.html
+
+# -- Private / redundant artifacts --
+# The LinkedIn PDF duplicates the resume; only the resume should ship.
+assets/LinkedIn_Profile.pdf

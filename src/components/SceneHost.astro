@@ -1,0 +1,28 @@
+---
+/**
+ * Mounts the WebGL Pipeline scene only when JS + prefers-reduced-motion: no-preference.
+ * Falls back to a static SVG otherwise. The scene sits z-index: 0, content above.
+ */
+import PipelineScene from "../scene/PipelineScene";
+import PipelineFallback from "../scene/PipelineFallback.astro";
+---
+<PipelineFallback />
+
+<div id="scene-host" hidden>
+  <PipelineScene client:visible />
+</div>
+
+<script is:inline>
+  // Show the canvas only if the user hasn't requested reduced motion.
+  // (Falls back to the SVG otherwise.)
+  (function () {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduced) {
+      var host = document.getElementById("scene-host");
+      if (host) host.hidden = false;
+      // hide the static fallback
+      var fb = document.querySelector(".pipeline-fallback");
+      if (fb) fb.style.display = "none";
+    }
+  })();
+</script>
