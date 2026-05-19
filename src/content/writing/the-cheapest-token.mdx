@@ -1,0 +1,71 @@
+---
+title: "The cheapest token is the one you don't send"
+dek: "Routing, retrieval, and a small set of decisions about which questions a model should never see."
+date: 2026-04-21
+tags: ["production-ml", "routing", "cost"]
+featured: true
+---
+
+Most of the work of building a useful LLM system is upstream of the model. By the time a request reaches the model, the interesting decisions have already been made: which model, with what context, after how much retrieval, scoped to which permissions, and whether this question should even involve a language model at all. The model is the last 5% of the system, often the most expensive 5%, and almost never where the leverage is.
+
+A reasonable way to think about a production LLM stack is a sequence of "can we avoid this?" gates. Each one is cheaper than the next, and each one can answer the request before the request becomes a token.
+
+## The escape hatches, in cost order
+
+Before we talk about routing between models, it’s worth being honest about how many requests should never reach a model in the first place. A real production system has, at minimum, four cheaper exits:
+
+1. **The deterministic answer.** If a customer asks "what was my invoice total for March," there is a number in a database. The right shape of that answer is a SQL query and a templated reply, not a generative one. Sending it to a model produces a less-accurate, more-expensive, slower version of the same answer and exposes you to a hallucination you can’t verify.
+
+2. **The cached answer.** If the same question has been asked, recently, by anyone with the same scope, the answer is already on disk. Semantic cache hits in support-style traffic are reliably in the 15–30% range once you tune the similarity threshold and partition by user role.
+
+3. **The retrieval-only answer.** "Show me the section of the lease that talks about pets" is a retrieval problem, not a reasoning problem. The answer is a span of text. Returning the span beats summarizing it.
+
+4. **The structured-tool answer.** "Schedule a follow-up for next Thursday at 2pm" is a function call. There is no token of generated prose that improves the outcome. The model picks the tool; the tool does the work.
+
+Only what survives those four gates is a candidate for a generative response. In our IDP pipeline, that ends up being roughly a third of incoming requests. The other two-thirds are answered without a model in the loop.
+
+## Routing between models is the next gate
+
+The remaining third is not homogeneous. Some of it is "find the date on this form, return ISO 8601." Some of it is "this lease has three unusual termination clauses; tell me what the implications are if the tenant breaks during the renewal window." Those are different jobs, and sending them to the same model is paying small-model prices for the easy ones and large-model latency for the hard ones, in both directions.
+
+We use Bedrock’s Intelligent Prompt Routing as the first cut and a hand-rolled router on top of it for cases we care about. The hand-rolled part is shorter than you’d think. A request lands in a small classifier that emits one of four labels:
+
+- **Extract** — pull a structured field set out of a known-type document. Goes to a small, fast model with a function-call schema.
+- **Validate** — given an extracted field set and the source, check whether the extraction is internally consistent and matches the source. Same small model, different prompt.
+- **Reason** — questions that require synthesis across multiple sources, comparison of options, or multi-step inference. Goes to the bigger model.
+- **Escalate** — questions where the gatekeeper layer or the validator flagged low confidence. Goes to a human reviewer, no model spend.
+
+The classifier is, again, a small thing. It does not need to be smart. It needs to be wrong in known ways that you can audit, which is a much easier requirement than "smart."
+
+## RAG and KG are two answers to two different questions
+
+Retrieval-augmented generation gets discussed as if it were a single technique. In our system it’s two, and they answer different shapes of question.
+
+A vector store over chunked documents is the right answer for "given a user’s question, find me passages of source text the model might quote or cite from." It is bad at multi-hop, bad at exact joins, and bad at anything that wants the system to know the *structure* of an entity rather than mentions of it.
+
+A knowledge graph — really, a small Neo4j with extracted entities and a few well-curated relations — is the right answer for "given a user’s question, find me the entity it’s about and traverse to related entities." Asking a vector store "what other agreements does this party have with us" is hopeless. Asking a graph is one cypher query.
+
+We wire both behind a single MCP-shaped tool surface for the agent. The router decides which one to call based on whether the question mentions an entity by name (graph) or describes a topic semantically (vectors). When in doubt, it calls both, dedupes, and trusts the graph where they overlap.
+
+## What we actually optimize for
+
+We don’t optimize for tokens. We optimize for **answered-correctly per dollar**, measured against a held-out evaluation set the agents have never seen, scored against extractions that a human reviewer signed off on.
+
+That metric changes which knobs matter. The biggest moves on it, in order of how much they shifted the number for us:
+
+| Change | Effect on cost/correct |
+|---|---|
+| Adding the gatekeeper and routing 70% of upload volume away | ~6x |
+| Switching extract+validate to a small model with function-call schemas | ~2.5x |
+| Adding a semantic cache with role-partitioning | ~1.4x |
+| Cutting Bedrock model size on the "reason" path from large to medium | ~1.2x, with no measurable accuracy loss on our eval set |
+
+The big numbers are upstream of the model. The small numbers are at the model. The temptation, always, is to spend engineering time on the model itself, because that’s where the interesting machine learning lives. The leverage is somewhere else.
+
+## The honest part
+
+This works for our shape of workload, which is high-volume, predictable-document, schema-anchored extraction with human review on the edges. It would not work for an open-ended chat product where users expect to be heard out and the model is the experience. It would not work for a creative-writing tool. It is not a recipe; it is a description of what cost-conscious looks like in one domain.
+
+It also does not eliminate the LLM. The 5% of requests that reach it are the ones where it actually pays its keep — reasoning across context that doesn’t fit a schema, summarizing in a register that matches the asker’s, drafting language that a human will then edit. The point isn’t that the model is bad. The point is that most of what a production system gets asked to do isn’t the thing models are uniquely good at.
+
+The cheapest token is still the one you don’t send. The second cheapest is the one you send to a small model with a schema. By the time you’re sending tokens to a frontier model, you should be sure the question deserves them.

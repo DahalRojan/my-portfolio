@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="About"
+  description="Rojan Dahal — AI Engineer at TitanCloud. MS Data Science, Gannon University. Built on-device CV at BitsKraft, ran research infrastructure for a faculty group, currently shipping a document IDP pipeline."
+>
+  <article class="container-x py-16 sm:py-24">
+    <header class="measure mb-12" data-reveal>
+      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+        About
+      </p>
+      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
+        I build the parts of an ML system that <span class="display-italic">aren&rsquo;t the model</span>.
+      </h1>
+    </header>
+
+    <div class="prose" data-reveal>
+      <p>
+        I&rsquo;m an AI Engineer at <strong>TitanCloud</strong>, working on a document intelligence
+        pipeline that filters and routes uploads before any LLM token is spent. I&rsquo;m
+        also an <strong>MS Data Science candidate at Gannon University</strong>, graduating
+        December 2025 with a 4.0 GPA.
+      </p>
+
+      <p>
+        I care about the layers of a production ML system that nobody talks about &mdash;
+        the rule pre-filter, the calibrated confidence score, the trace command that walks
+        a single request through every step. Most of what&rsquo;s broken in a real ML system
+        isn&rsquo;t the model. The model is the last 5%. The other 95% is where I spend my
+        time, and where I think most of the leverage lives.
+      </p>
+
+      <h2>What I&rsquo;m doing now</h2>
+
+      <p>
+        At TitanCloud I designed and built a four-layer gatekeeper in front of a three-agent
+        IDP pipeline on Amazon Bedrock. It rejects roughly 92% of upload volume before the
+        LLM sees anything, and the remaining traffic arrives with calibrated quality and
+        confidence scores so the downstream agents can decide how much to trust their own
+        outputs. I&rsquo;ve written about that design at length in
+        <a href="/writing/the-gatekeeper-pattern">the gatekeeper pattern</a>
+        and the routing decisions in
+        <a href="/writing/the-cheapest-token">the cheapest token</a>.
+      </p>
+
+      <h2>Before this</h2>
+
+      <p>
+        Two years at <strong>BitsKraft</strong> as an ML engineer, shipping computer-vision
+        models on iOS and Android, plus a document-region detector for an OCR pipeline. The
+        model work was always the easy part; the hard part was getting matched numbers out
+        of two runtime stacks that quantize differently. That experience is most of what
+        I know about reproducible builds.
+      </p>
+
+      <p>
+        At Gannon I was a graduate assistant for a research group of seven faculty,
+        maintaining a shared Postgres + Airflow stack and a small FastAPI service in front
+        of the model registry. The research result I&rsquo;m proudest of is a hybrid
+        classical-and-CNN defect-detection pipeline that ran on a Jetson Nano at 24 ms p99,
+        published at <strong>NAMRC/MSEC 2025</strong>.
+      </p>
+
+      <h2>How I work</h2>
+
+      <ul>
+        <li>I build the trace command first. If you can&rsquo;t walk a single request through
+          every step of your system in one command, you&rsquo;re going to spend two-hour
+          debugging sessions that should have been five minutes.</li>
+        <li>I treat eval sets like code. Version them. Replace them on a schedule. If your
+          eval set hasn&rsquo;t changed in six months and your workload has, your numbers
+          are lying to you.</li>
+        <li>I make failures loud. Silent retries are kindness to the on-call rotation that
+          becomes cruelty to the team trying to diagnose a real problem.</li>
+        <li>I write things down. Most of the writing on this site is field notes from real
+          systems &mdash; not because the field needs more thought-leadership, but because
+          the things that actually broke in production are the things worth remembering.</li>
+      </ul>
+
+      <h2>What I&rsquo;m looking for</h2>
+
+      <p>
+        A full-time AI / ML engineering role starting mid-2026 (F-1 OPT, open to
+        relocation). I&rsquo;m most useful on teams building production ML systems that
+        already have users and need someone who cares about the boring layers as much as
+        the interesting ones.
+      </p>
+
+      <p>
+        Best way to reach me: <a href="mailto:rojandahal1026@gmail.com">rojandahal1026@gmail.com</a>.
+        Or LinkedIn (<a href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">/in/rojandahal</a>),
+        GitHub (<a href="https://github.com/DahalRojan" target="_blank" rel="noopener noreferrer">DahalRojan</a>),
+        or grab my <a href="/Resume_Rojan_Dahal.pdf">resume</a>.
+      </p>
+    </div>
+  </article>
+</Base>

@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found" noindex>
+  <section class="container-x py-32 sm:py-48">
+    <div class="measure" data-reveal>
+      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+        404
+      </p>
+      <h1 class="display mt-3 text-[clamp(2.6rem,5vw+1rem,4.5rem)]">
+        This page doesn&rsquo;t exist <span class="display-italic">yet</span>.
+      </h1>
+      <p class="dek mt-6">
+        Maybe it was here, maybe it never was. Try the front page or the writing index.
+      </p>
+      <p class="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-[14px] uppercase tracking-[0.14em]">
+        <a href="/" class="link-rule text-[var(--color-rust)]">Home</a>
+        <a href="/writing" class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">Writing</a>
+        <a href="/work" class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">Work</a>
+      </p>
+    </div>
+  </section>
+</Base>

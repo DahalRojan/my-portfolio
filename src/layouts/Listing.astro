@@ -1,0 +1,34 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  kicker?: string;
+  intro?: string;
+}
+
+const { title, description, kicker, intro } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <section class="container-x py-16 sm:py-24">
+    <header class="measure-wide" data-reveal>
+      {
+        kicker && (
+          <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+            {kicker}
+          </p>
+        )
+      }
+      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
+        {title}
+      </h1>
+      {intro && <p class="dek mt-5 measure">{intro}</p>}
+    </header>
+
+    <div class="mt-16">
+      <slot />
+    </div>
+  </section>
+</Base>

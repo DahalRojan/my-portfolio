@@ -1,0 +1,33 @@
+---
+const year = new Date().getFullYear();
+const links = [
+  { href: '/rss.xml', label: 'RSS' },
+  { href: 'https://www.linkedin.com/in/rojandahal/', label: 'LinkedIn', external: true },
+  { href: 'https://github.com/DahalRojan', label: 'GitHub', external: true },
+  { href: 'mailto:rojandahal1026@gmail.com', label: 'Email' },
+];
+---
+
+<footer class="mt-32 border-t border-[var(--color-rule)]">
+  <div class="container-x flex flex-col gap-6 py-10 sm:flex-row sm:items-baseline sm:justify-between">
+    <p class="text-[14px] text-[var(--color-ink-soft)]">
+      &copy; {year} Rojan Dahal. Written, designed, and built in
+      <span class="display-italic">{`Erie, PA`}</span>.
+    </p>
+    <ul class="flex flex-wrap gap-x-6 gap-y-2 text-[14px] uppercase tracking-[0.14em] text-[var(--color-ink-soft)]">
+      {
+        links.map(({ href, label, external }) => (
+          <li>
+            <a
+              href={href}
+              class="link-grow hover:text-[var(--color-ink)]"
+              {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >
+              {label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>

@@ -1,0 +1,51 @@
+---
+title: "TitanCloud — Document IDP and the Gatekeeper Pipeline"
+role: "AI Engineer"
+period: "2026.03 – present"
+order: 1
+summary: "A three-agent IDP pipeline on Amazon Bedrock with a four-layer gatekeeper in front. Filters 92% of input before any LLM token is spent, routes the rest by intent, and closes the loop on human corrections."
+stack:
+  - "Python"
+  - "AWS Bedrock"
+  - "EfficientNet-B0"
+  - "OpenCV"
+  - "MCP"
+  - "Neo4j"
+  - "EventBridge"
+  - "Amazon A2I"
+featured: true
+---
+
+## The problem
+
+A document-intelligence pipeline that routes every upload straight into a Bedrock agent is a pipeline that pays the LLM to do work the LLM is not uniquely good at. About half of typical user uploads are the wrong file type or quality, and the model handles them confidently and at length, producing answers a reviewer then has to undo. The bill goes up; trust in the answers goes down.
+
+## What I built
+
+A four-layer gatekeeper in front of a three-agent IDP pipeline.
+
+**Gatekeeper layers (L0–L3):**
+- **L0 — Rectify.** Document-aligner CNN finds page corners and warps to top-down; CLAHE normalizes contrast. CPU only.
+- **L1 — Rule pre-filter.** Hard rejects (zero-byte, MIME mismatch, page count out of range) plus soft rejects against a library of known-bad templates (terms-of-service, email-thread screenshots, blank forms).
+- **L2 — Keyword and structural scorer.** Light Tesseract pass, scored against per-document-type term sets. Routes low-scoring inputs to human review instead of guessing.
+- **L3 — EfficientNet-B0 classifier.** Fine-tuned on ~40K labeled images plus a "none of the above" class, with calibrated softmax. Emits document type, quality score, and confidence.
+
+**Three-agent pipeline:**
+- **Gatekeeper agent** — wraps L0–L3; produces a routing decision.
+- **Extraction agent** — pulls a structured field set per document type using a function-call schema. MCP tool surface over a Neo4j knowledge graph for entity resolution.
+- **Validation agent** — checks internal consistency and source alignment, flags low-confidence fields to Amazon A2I for human review.
+
+A self-improvement loop pipes A2I corrections back through EventBridge into both the eval set and a periodic fine-tune of the L3 CNN and the extraction prompts.
+
+## What changed because of it
+
+- **~92% of upload volume terminates before the LLM**, with calibrated quality scores attached to the rest.
+- **Per-document cost dropped roughly 6×** on the most common workload.
+- **Human-review queue narrowed by ~70%**, with the remaining cases pre-tagged with the reason (low-confidence type, low-quality scan, schema mismatch).
+- **Trace-one-document command** lets the team walk a single upload through every agent, prompt, retrieval, and tool call — built early, used daily, paid for itself in the first week.
+
+## What I’d do differently
+
+Built the trace command first instead of third. Treated the eval set as code from day one; replacing it on a monthly cadence after the workload mix shifted should have been the first instinct, not a retrofit.
+
+Related writing: [the gatekeeper pattern](/writing/the-gatekeeper-pattern) · [the cheapest token](/writing/the-cheapest-token) · [production ML is mostly not ML](/writing/production-ml-is-mostly-not-ml).

@@ -1,0 +1,28 @@
+---
+title: "Gannon University — Graduate Assistant, Data Science"
+role: "Graduate Assistant"
+period: "2024.09 – 2025.12"
+order: 3
+summary: "Built and maintained the data-engineering infrastructure for a research group spanning manufacturing, healthcare imaging, and applied NLP. Mentored undergraduates through their first real ML project."
+stack:
+  - "Python"
+  - "Postgres"
+  - "Airflow"
+  - "PyTorch"
+  - "FastAPI"
+featured: false
+---
+
+## The role
+
+Half engineer, half teacher. I owned the shared data infrastructure for a research group of seven faculty and a rotating bench of undergraduate and masters students — the part of the lab that is supposed to "just work" so that nobody is reinventing data loading on top of a thumb drive.
+
+## What I built
+
+- A shared Postgres + Airflow stack on a single workshop server, with a small library of dataset loaders that standardized how labeled images, text, and tabular records were read into PyTorch jobs.
+- A FastAPI service in front of the lab’s shared model registry, so undergrads could query a model by name and version without remembering the directory layout.
+- A weekly research check-in template that, once adopted, cut the average time from "interesting idea" to "first runnable notebook" from about three weeks to about three days.
+
+## What changed because of it
+
+Three undergraduates completed first-author or co-author publications during my tenure. Two of them had never written more than a Python script before working with the group. The infrastructure was not the reason they succeeded — that was them — but the infrastructure stopped being the reason they got stuck.

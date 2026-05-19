@@ -1,0 +1,45 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  dek?: string;
+  date: Date;
+  minutes?: number;
+  variant?: 'compact' | 'wide';
+}
+
+const { href, title, dek, date, minutes, variant = 'wide' } = Astro.props;
+const fmt = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+---
+
+<a
+  href={href}
+  class="group block border-t border-[var(--color-rule)] py-7"
+  data-reveal
+>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-10">
+    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-32">
+      <time datetime={date.toISOString()} class="tabnums">{fmt}</time>
+      {minutes != null && <span class="ml-3 sm:ml-0 sm:block">{minutes} min</span>}
+    </div>
+
+    <div class="flex-1">
+      <h3 class="display text-[clamp(1.4rem,1.5vw+0.8rem,1.85rem)] leading-tight transition-colors group-hover:text-[var(--color-rust)]">
+        {title}
+      </h3>
+      {
+        dek && (
+          <p class="mt-2 text-[16px] leading-snug text-[var(--color-ink-soft)]">
+            {dek}
+          </p>
+        )
+      }
+    </div>
+
+    <span
+      class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline"
+    >
+      Read &rarr;
+    </span>
+  </div>
+</a>

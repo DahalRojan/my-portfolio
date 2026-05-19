@@ -1,0 +1,38 @@
+---
+import Listing from '../../layouts/Listing.astro';
+import EssayCard from '../../components/EssayCard.astro';
+import { getCollection } from 'astro:content';
+import { minutesOf } from '../../lib/reading';
+
+const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<Listing
+  title="Writing"
+  description="Essays by Rojan Dahal on production ML, agents, retrieval, and the parts of building AI systems that aren’t modeling."
+  kicker="Essays · Updated monthly"
+  intro="On building production ML — the four layers before the LLM, the routing decisions upstream of the model, and field reports from a three-agent IDP pipeline."
+>
+  <div>
+    {
+      posts.map((post) => (
+        <EssayCard
+          href={`/writing/${post.id}`}
+          title={post.data.title}
+          dek={post.data.dek}
+          date={post.data.date}
+          minutes={minutesOf(post.body ?? '')}
+        />
+      ))
+    }
+    <div class="border-t border-[var(--color-rule)]" />
+  </div>
+
+  <p class="mt-10 text-[14px] text-[var(--color-ink-soft)]">
+    Subscribe via <a class="link-rule text-[var(--color-rust)]" href="/rss.xml">RSS</a> &middot;
+    or follow on
+    <a class="link-rule" href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+  </p>
+</Listing>

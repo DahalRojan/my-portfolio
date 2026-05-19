@@ -1,0 +1,32 @@
+---
+import Listing from '../../layouts/Listing.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('work', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+---
+
+<Listing
+  title="Work"
+  description="Selected projects and roles by Rojan Dahal — production ML, computer vision, and document intelligence."
+  kicker="Projects &amp; Roles"
+  intro="Where I’ve spent the last few years — a document IDP pipeline at TitanCloud, manufacturing CV research at Gannon, mobile ML at BitsKraft."
+>
+  <div>
+    {
+      projects.map((p) => (
+        <WorkCard
+          href={`/work/${p.id}`}
+          title={p.data.title}
+          role={p.data.role}
+          period={p.data.period}
+          summary={p.data.summary}
+          stack={p.data.stack}
+        />
+      ))
+    }
+    <div class="border-t border-[var(--color-rule)]" />
+  </div>
+</Listing>

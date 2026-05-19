@@ -1,0 +1,28 @@
+---
+import Post from '../../layouts/Post.astro';
+import { getCollection, render } from 'astro:content';
+import { minutesOf } from '../../lib/reading';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('writing', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const minutes = minutesOf(post.body ?? '');
+---
+
+<Post
+  title={post.data.title}
+  dek={post.data.dek}
+  date={post.data.date}
+  updated={post.data.updated}
+  tags={post.data.tags}
+  minutes={minutes}
+>
+  <Content />
+</Post>

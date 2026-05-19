@@ -1,0 +1,41 @@
+---
+title: "Manufacturing surface-defect detection (NAMRC/MSEC 2025)"
+role: "Graduate Researcher"
+period: "2024.09 – 2025.06"
+order: 2
+summary: "A vision pipeline for live surface-defect detection on machined parts, published at NAMRC/MSEC 2025. Combined classical image features with a small CNN to keep inference under 30 ms on workshop hardware."
+stack:
+  - "Python"
+  - "PyTorch"
+  - "OpenCV"
+  - "ONNX Runtime"
+  - "Jetson Nano"
+featured: true
+---
+
+## The problem
+
+Surface-defect detection on production lines wants three things at once: high recall for small defects, sub-50 ms inference on inexpensive edge hardware, and robustness to changes in lighting and fixturing that no one on the line has time to recalibrate.
+
+Off-the-shelf vision-model pipelines hit one or two of the three at a time. They were either accurate and slow, or fast and brittle to a lighting shift.
+
+## What I built
+
+A hybrid pipeline that prepends classical feature extraction to a small CNN, both running on a Jetson Nano:
+
+- **Classical front-end:** edge density, local contrast, and a fast Gabor-filter response, computed in OpenCV.
+- **CNN back-end:** a compact 4-block convnet (~1.2M params) fine-tuned on ~12K labeled patches across six defect classes plus a clean class.
+- **Inference:** ONNX Runtime with the OpenVINO execution provider, batched at the line’s frame rate.
+
+The classical features served two purposes. They focused the CNN on patches with non-trivial structure (cutting input volume), and they were used at the loss level during training as auxiliary targets, which improved generalization to unseen lighting conditions.
+
+## What changed because of it
+
+- **Inference latency: 24 ms p99** on Jetson Nano, well inside the 50 ms budget.
+- **Recall for the smallest defect class +11 percentage points** vs. a strong CNN-only baseline of the same parameter count.
+- **Robustness to a controlled lighting-shift test: AUC dropped 0.04** (vs. 0.18 for the CNN-only baseline).
+- Published as a peer-reviewed paper at the joint NAMRC/MSEC 2025 manufacturing-engineering conference.
+
+## What I learned
+
+Classical CV is not legacy. Hand-designed features, used carefully, can dramatically reduce the data and compute needed to make a deep model robust. The interesting research question is rarely "can we make the model bigger" — it’s "where can we substitute a cheaper, better-understood signal."

@@ -1,0 +1,85 @@
+---
+title: "Production ML is mostly not ML"
+dek: "A field report from a three-agent IDP pipeline: what breaks first, what's worth automating, and where humans still earn their seat."
+date: 2026-03-30
+tags: ["production-ml", "agents", "field-notes"]
+featured: true
+---
+
+I keep a notebook of what actually breaks in the production ML pipeline I work on. Skimming six months of it, the categories are roughly:
+
+- Storage and ingestion bugs that have nothing to do with the model
+- Schema drift between extraction outputs and downstream consumers
+- Auth and IAM edges, especially around presigned URLs and short-lived tokens
+- Eval-set bit-rot — the held-out set no longer represents production
+- "The model is wrong" — surprisingly far down the list, and usually a symptom of one of the above
+
+The lesson is the one everyone repeats and most teams underweight in practice. The model is the smallest part of the system. The fact that the model is genuinely difficult does not make it the part that is failing. Most of what makes a production ML system work, or not, is plumbing.
+
+## What the system actually is
+
+Setting context — the system I’m writing about is a document intelligence pipeline composed of three Bedrock-backed agents wired together by an event bus.
+
+- **Gatekeeper** classifies and routes incoming documents (covered in [the gatekeeper post](/writing/the-gatekeeper-pattern)). Outputs a document type, a quality score, and a calibrated confidence.
+- **Extraction** pulls structured fields out of classified documents. Different prompt-and-schema per type. Optional function calls into the knowledge graph for entity resolution.
+- **Validation** checks that the extracted record is internally consistent, matches the source, and obeys business rules. If anything fails, it routes to human review via Amazon A2I.
+
+Three agents, one event bus, three MCP servers (RAG, DB, knowledge graph), an Intelligent Prompt Router on top, and a feedback loop that captures human corrections and pipes them back into both the eval set and a periodic fine-tune of the small extraction model.
+
+None of that is the interesting part of the system. The interesting part is the parts that aren’t in that paragraph.
+
+## What breaks first
+
+In rough order of how often I touched it in the last six months:
+
+**Storage and presigned URLs.** A document gets uploaded, lands in S3, gets a presigned URL with a 15-minute expiry, gets passed through the bus, hits the agent — and the URL expires somewhere in the middle of a retry. The fix is boring: pass an object reference, not a URL, and resign at consumption time. Took me longer than it should have to figure out that "the agent times out intermittently" was a clock problem, not a model problem.
+
+**Schema drift between agents.** Validation expects a record shape that Extraction stopped emitting two weeks ago because someone added an optional field upstream and the type now serializes differently. The fix is contract tests on the bus messages. We didn’t have them. Adding them was the highest-leverage day of work I did in Q1.
+
+**Eval-set bit-rot.** The held-out set we used to track extraction accuracy was assembled when the document mix was 60% leases. The mix shifted to 40% leases and 35% sales-and-purchase agreements, and we kept reporting accuracy against a set that didn’t look like production anymore. The model was getting "worse" by 4 points on the eval set while improving by 2 on the actual workload, because the eval set was over-indexed on the things we’d trained hardest on.
+
+**IAM.** Always IAM. The new service has the right policy for read-only-bucket; nobody noticed it didn’t have permission to put objects in the human-review staging bucket until A2I returned an empty handoff queue. It took eleven hours to figure out and ninety seconds to fix.
+
+**"The model is wrong."** Yes, sometimes the model is wrong. Almost always, though, "the model is wrong" turns out to be one of: the wrong prompt was loaded, the input image was rotated 90°, the field the model was asked about doesn’t exist in this document type, the function-call schema mismatched the prompt by a single key name, or the temperature was set to something that was fine for one task and silly for another.
+
+## What’s worth automating, and what isn’t
+
+A lot of the operational pain in this kind of system is repetitive but not regular. It’s not the same job every day. It’s a thousand small variants of "find out why this particular document went sideways."
+
+The things that have paid back the time to automate them:
+
+- A "trace one document end-to-end" command that walks an upload ID through every agent, every prompt, every retrieval, every tool call, with the raw outputs of each step. The fact that this didn’t exist for the first three months is something I think about a lot.
+- A nightly job that samples 50 production extractions, scores them against the human-reviewed ground truth, and flags drifts of more than 2 standard deviations on any metric.
+- A "promote eval set" workflow that takes the last 30 days of human-reviewed records, samples them by document type weighted by current production mix, and replaces the eval set automatically. Run by hand monthly; would like to make it weekly.
+
+The things that have *not* paid back the time and that I’d push back on if asked again:
+
+- Fancy dashboards. We built three. Nobody reads dashboards in production support. People read the trace command’s output. Two of the dashboards are now unmaintained and one is just for screenshots.
+- A clever "agent observability" layer that wraps every LLM call in a custom span format. We were trying to outdo OpenTelemetry. OpenTelemetry was fine. Use it.
+- A self-healing retry policy that tries to detect "transient failures" and silently re-runs. It silently re-ran things that should have failed loudly. It is now dead. Failures are loud.
+
+## Where humans still earn their seat
+
+The pipeline routes about 11% of completed extractions to a human reviewer through Amazon A2I. The reviewer corrects fields, optionally flags the document as a hard case, and the corrected record is what flows downstream. Two things have surprised me about this:
+
+The first is that the human reviewers catch things the validator can’t. Not because the validator is bad, but because the validator only checks rules that someone wrote down. The reviewers catch the things nobody knew to write a rule for — the lease that mentions a guarantor only in a handwritten margin note, the invoice where the vendor name is buried in a footer because the document was generated by a template that hides it, the form where the date is in a non-Gregorian calendar and the system silently treated it as something else. Every one of those becomes a new rule, eventually, but only because a reviewer flagged it first.
+
+The second is that the *interface* matters more than the model. We have one extraction model and three reviewer interface iterations. The interface iterations changed reviewer throughput by roughly 3× across versions. The model has gotten about 8 points better on the eval set in the same period. The interface work moved the system more than the model work did.
+
+The lesson, again, is that the bottleneck is rarely where you think it is and is rarely the part that’s most fun to work on.
+
+## What I’d tell someone starting
+
+A few things I wish I’d known before I started building this stack.
+
+**Build the trace command first.** Before the model, before the agents, before anything else, build the thing that lets you walk a single request through every step. If you skip this, you will pay for it in two-hour debugging sessions that should have been five minutes.
+
+**Treat eval sets like code.** Version them. Replace them on a schedule. If your eval set is the same one you had six months ago and your workload has shifted, your numbers are lying to you.
+
+**Make failures loud.** Silent retries are a kindness to the on-call rotation that becomes a cruelty to the team trying to diagnose a real problem. Loud failures hurt for a week and save you for a year.
+
+**Spend the time on the human-review interface.** If your system has a human in the loop, that human’s throughput is the throughput of your pipeline. Improving the model is fun; improving the interface ships more value per hour.
+
+**Resist the urge to wrap everything in a fancy abstraction.** OpenTelemetry exists. S3 with presigned URLs that you re-sign at consumption exists. SQS with dead-letter queues exists. Boring building blocks compose better than clever ones.
+
+The model is the smallest part of the system, and it is also the part that most of the ML literature, most of the conference talks, and most of the YouTube tutorials are about. The rest of the system is where the work lives. The rest of the system is also where the value is.

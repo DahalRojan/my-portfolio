@@ -1,0 +1,99 @@
+---
+title: "Four layers before the LLM: the gatekeeper pattern"
+dek: "How a stack of cheap classifiers cuts a document-IDP bill by an order of magnitude without ever waking the model."
+date: 2026-05-12
+tags: ["production-ml", "rag", "ocr"]
+featured: true
+---
+
+The cheapest call to a large language model is the one you never make. We had a document-intelligence pipeline routing every uploaded PDF straight into a Bedrock agent, and the bill was the first thing anyone noticed. The second thing anyone noticed was that most of the bill was being spent on PDFs that were not, in any useful sense, the document we were looking for.
+
+Half of what users uploaded was the wrong file. The other half was the right file, but bent, smeared, dark, sideways, or photographed from an angle that put the camera’s shadow across the signature block. The model handled both. It handled them confidently and at length, and then a human reviewer had to undo the answer.
+
+So we built a gatekeeper in front of it. Four layers, in cost order, each one designed to terminate the pipeline as early as possible. By the time a document actually reached the LLM, we had thrown away roughly 92% of the original upload volume, and what was left was clean, cropped, rectified, classified to type, and accompanied by a confidence score that the agent could use to decide how much to second-guess itself.
+
+This post is how the layers compose, what each one is doing under the hood, and the trade-offs we kept making in favor of "boring."
+
+## Why a gatekeeper at all
+
+The argument for funneling everything into the model is short and seductive: the model is general, so let it generalize. In practice, what you discover is that general-purpose models are willing to give you a confident answer on input they should have rejected. They do not refuse. They do not raise their hand. They politely answer the wrong question on the wrong document, and you find out two reviewer-hours and forty dollars later.
+
+You also discover that the per-token cost of a vision-language model is much higher than the per-call cost of almost anything else. A 4 MB scanned PDF that gets rasterized and passed in image-by-image is not free, and the unit economics of "let the model figure it out" stop making sense as soon as your upload funnel includes anyone who is not a power user.
+
+The gatekeeper exists because the two cheapest filters in any ML system are still:
+
+1. A rule that says "this isn't even the right kind of file."
+2. A classifier that says "this is the right kind, but the quality is too low to extract reliably."
+
+Both of those decisions are answerable in milliseconds with no GPU.
+
+## Layer 0: rectify before you decide anything
+
+The first layer doesn’t classify; it cleans. Most production OCR errors trace back to the same handful of physical problems: skew, glare, low contrast, and the user’s thumb in the corner. So before any model touches the page, we run two steps.
+
+The first is a document-aligner — in our case a small CNN trained to detect the four corners of a page on a contrasting background. It returns a homography that warps the input into a flat, top-down rectangle the same way a phone scanner app does. The model is tiny and runs on CPU.
+
+The second is CLAHE (contrast-limited adaptive histogram equalization). One paragraph of OpenCV. CLAHE divides the image into tiles, equalizes the contrast inside each one, then blends the tiles back together. The combination of "rectified" and "contrast-normalized" turns a phone photo of a crumpled form into something OCR can read without compensating for the camera operator.
+
+We measure Layer 0 by what it makes possible downstream, not by what it rejects. It doesn’t reject anything. But the false-positive rate of every subsequent layer drops by roughly half once the input is rectified.
+
+## Layer 1: rule pre-filter
+
+This is the layer that does the most work for the least money. It is a list of rules. Some of them are embarrassing.
+
+The hard rejects are obvious. File is zero bytes; reject. File is a 30 MB PNG that decodes to a 2-pixel image; reject. Page count is outside a reasonable range; reject. MIME type doesn’t match magic bytes; reject. Document was extracted from a ZIP with five other documents; route to a separate splitter, not the gatekeeper.
+
+The soft rejects are where the value compounds. We keep a small library of regex patterns and visual signatures for documents we know we’ll see and know we don’t want — terms-of-service templates, common email signatures rendered as PDF, blank tax forms with no values, screenshots of email threads about the document instead of the document itself. None of this is glamorous. All of it stops a request from reaching anything paid.
+
+The rule pre-filter is the layer engineers underweight when they design these systems. It looks like the part you can skip and let the smarter model figure out. You can’t. The rules are doing about a third of the gating in our pipeline, and they cost nothing to run.
+
+## Layer 2: keyword and structural scorer
+
+Once a document survives the rule layer, it gets a fast text pass. We run a lightweight OCR (Tesseract with a tuned page-segmentation mode) and score the output against keyword sets per document type — invoice, receipt, lease, ID, signed agreement.
+
+This is not classification. It is scoring. Each document type has a small bag of expected terms and a small bag of disqualifying terms, weighted by where they appear (header, footer, body). A receipt should mention amounts, totals, dates, and a vendor name. A lease should mention a term, a rent figure, and named parties. If a document scores below the floor for every type, we don’t guess; we route it to human review with a "doesn’t match any known type" reason code.
+
+The reason this layer exists and is not collapsed into Layer 3 is latency and cost. The keyword scorer runs in tens of milliseconds. The CNN downstream runs in hundreds. We send the CNN a smaller, prioritized queue.
+
+## Layer 3: the small CNN that does the actual classification
+
+This is the only place a learned model touches the input. We use an EfficientNet-B0 fine-tuned on roughly 40,000 labeled images of the document types we care about, plus a "none of the above" class. B0, not the bigger variants, on purpose: it runs fast enough on CPU to keep latency budget reasonable, and we never beat it meaningfully on validation when we tried the larger backbones.
+
+The CNN takes the rectified image from Layer 0 plus the type scores from Layer 2 as a small feature vector concatenated to the penultimate layer. It outputs a class and a calibrated confidence. We calibrate with temperature scaling on a held-out validation set, because raw softmax confidence is a lie and downstream consumers should be able to trust the number.
+
+This is the only layer that produces the inputs the LLM agent actually uses: document type, page-level confidence, and a quality score that the agent reads as "how much should I second-guess my extraction." A low quality score doesn’t reject the document; it tells the next stage to ask the human reviewer instead of the LLM.
+
+## What we throw away, and what we don’t
+
+The aggregate effect of the four layers, measured on a month of production traffic:
+
+| Layer | Throughput | Action |
+|---|---|---|
+| Layer 0 (rectify) | 100% | Pass-through; improves all downstream metrics |
+| Layer 1 (rules)   | 71% remaining | Hard + soft rejects, queue routing |
+| Layer 2 (scorer)  | 24% remaining | Type scoring, low-confidence routed to humans |
+| Layer 3 (CNN)     | 8% remaining | Classified and scored; passed to the agent |
+
+Eight percent of upload volume reaches the LLM, and that eight percent arrives with a class, a quality score, and a calibrated confidence. The agent uses all three. If the confidence is high and the quality is high, it extracts and validates against schema. If either drops, it pulls a structured prompt that asks the model to flag fields it’s unsure about, and those flags get reviewed by a person before the document is marked complete.
+
+## What we got wrong twice
+
+We tried, twice, to skip Layer 2. The first time we built the keyword scorer, it felt like dead weight; the CNN was good, the rules were doing most of the rejection, and an intermediate layer felt fussy. We pulled it out. Latency on Layer 3 got worse because the queue prioritization was gone, and human-review false positives went up because low-confidence type predictions were now arriving at the agent without context.
+
+The second time we tried to merge Layer 2 into Layer 3 as additional CNN features. That didn’t work either: the text-derived signals are surprisingly orthogonal to the visual ones, and treating them as another image channel diluted the signal instead of strengthening it. They’re more useful as a separate scoring step that influences routing, not as additional input to the model.
+
+The pattern, in retrospect, is "let layers stay layers." Each one is doing a different job at a different price point. Collapsing them feels elegant on a slide and is worse in production.
+
+## What this isn’t
+
+This pattern doesn’t apply when your input distribution is narrow and clean. If you control the upload UI, force a single document type, and reject anything that isn’t a 300-DPI PDF at submission time, you don’t need a gatekeeper. You need a validator and a model.
+
+It also doesn’t apply when the model itself is the cheap part. If you’re running a 3B-param model on your own hardware and most of your spend is fixed, the calculus changes. Throwing more requests at it is almost free.
+
+It does apply, and in our experience pays back the engineering cost in weeks, when:
+
+- Your input distribution is wide and includes a meaningful fraction of "wrong file."
+- Your model spend scales linearly with request volume.
+- A wrong answer costs more than a correct rejection (which, for anything with a human reviewer downstream, is almost always true).
+
+We did not invent any of these layers. We just stopped pretending the model could decide what was worth its attention.

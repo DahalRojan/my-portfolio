@@ -1,0 +1,24 @@
+---
+title: "BitsKraft — ML Engineer, Computer Vision"
+role: "Machine Learning Engineer"
+period: "2022.08 – 2024.06"
+order: 4
+summary: "Built and shipped vision models for two product surfaces: real-time face attribute recognition on mobile and document-region detection for an in-house OCR pipeline."
+stack:
+  - "Python"
+  - "PyTorch"
+  - "TensorFlow Lite"
+  - "Core ML"
+  - "AWS"
+featured: false
+---
+
+## What I shipped
+
+**Face-attribute recognition on mobile.** A multi-task CNN that ran on-device on iOS (Core ML) and Android (TFLite), predicting age band, gender, and expression in a single forward pass. The model was the easy part; the hard part was getting the same numbers out of two runtime stacks that quantize differently and round in opposite directions.
+
+**Document-region detection.** A small detector that segmented a document page into header, body, signature, and stamp regions before passing each region to a downstream OCR model trained for that region’s typography. Routing per region rather than running one OCR on the whole page improved character accuracy by 7 points on internal benchmarks and cut OCR latency in half.
+
+## What I learned
+
+Mobile ML deployment is mostly about quantization, runtime drift, and version pinning. The model architecture stops mattering as soon as the model fits the device budget. Reproducible builds and matched quantization parameters between training and serving matter more than any architectural choice I made in those two years.

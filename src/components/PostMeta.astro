@@ -1,0 +1,41 @@
+---
+interface Props {
+  date: Date;
+  updated?: Date;
+  tags?: string[];
+  minutes?: number;
+}
+
+const { date, updated, tags = [], minutes } = Astro.props;
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const dateIso = date.toISOString();
+const updatedIso = updated?.toISOString();
+---
+
+<div class="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-soft)]">
+  <time datetime={dateIso} class="tabnums">{fmt(date)}</time>
+  {
+    updated && (
+      <time datetime={updatedIso} class="tabnums">
+        &middot; updated {fmt(updated)}
+      </time>
+    )
+  }
+  {
+    minutes != null && (
+      <span class="tabnums">&middot; {minutes} min read</span>
+    )
+  }
+  {
+    tags.length > 0 && (
+      <span class="flex flex-wrap gap-x-3">
+        {tags.map((t) => (
+          <span class="text-[var(--color-ink-faint)]">#{t}</span>
+        ))}
+      </span>
+    )
+  }
+</div>

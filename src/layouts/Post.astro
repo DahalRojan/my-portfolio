@@ -1,0 +1,55 @@
+---
+import Base from './Base.astro';
+import PostMeta from '../components/PostMeta.astro';
+
+interface Props {
+  title: string;
+  dek?: string;
+  date: Date;
+  updated?: Date;
+  tags?: string[];
+  minutes: number;
+  ogImage?: string;
+}
+
+const { title, dek, date, updated, tags = [], minutes, ogImage } = Astro.props;
+const isoDate = date.toISOString();
+---
+
+<Base
+  title={title}
+  description={dek}
+  ogImage={ogImage}
+  ogType="article"
+  publishedTime={isoDate}
+>
+  <article class="container-x py-16 sm:py-24">
+    <header class="measure mb-12" data-reveal>
+      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+        Essay
+      </p>
+      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
+        {title}
+      </h1>
+      {dek && <p class="dek mt-5">{dek}</p>}
+      <div class="mt-8 border-t border-[var(--color-rule)] pt-4">
+        <PostMeta date={date} updated={updated} tags={tags} minutes={minutes} />
+      </div>
+    </header>
+
+    <div class="prose has-drop-cap" data-reveal>
+      <slot />
+    </div>
+
+    <hr />
+
+    <div class="measure mt-10 flex flex-wrap items-baseline justify-between gap-4 text-[14px] text-[var(--color-ink-soft)]">
+      <a href="/writing" class="link-grow uppercase tracking-[0.14em]">
+        &larr; All writing
+      </a>
+      <span>
+        Found a mistake? <a class="link-rule text-[var(--color-rust)]" href="mailto:rojandahal1026@gmail.com?subject=re: {title}">tell me</a>.
+      </span>
+    </div>
+  </article>
+</Base>

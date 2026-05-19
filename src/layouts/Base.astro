@@ -1,68 +1,98 @@
 ---
-import "../styles/global.css";
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
 
-export interface Props {
+interface Props {
   title: string;
-  description: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: string;
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://rojandahal.com").toString();
+const {
+  title,
+  description = 'Rojan Dahal — AI Engineer working on production ML systems. Writing about retrieval, agents, and the parts of the job that aren’t modeling.',
+  ogImage = '/og.svg',
+  ogType = 'website',
+  publishedTime,
+  noindex = false,
+} = Astro.props;
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Rojan Dahal",
-  jobTitle: "AI Researcher & ML Engineer",
-  email: "mailto:rojandahal1026@gmail.com",
-  url: canonical,
-  sameAs: [
-    "https://www.linkedin.com/in/rojandahal/",
-    "https://github.com/DahalRojan",
-  ],
-  alumniOf: [
-    { "@type": "CollegeOrUniversity", name: "Gannon University" },
-    { "@type": "CollegeOrUniversity", name: "London Metropolitan University" },
-  ],
-  knowsAbout: [
-    "Machine Learning",
-    "Large Language Models",
-    "Model Context Protocol",
-    "Computer Vision",
-    "MLOps",
-    "AWS Bedrock",
-    "AI Safety",
-  ],
-};
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageUrl = new URL(ogImage, Astro.site).toString();
+const fullTitle =
+  Astro.url.pathname === '/' ? title : `${title} — Rojan Dahal`;
 ---
+
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a0a0b" />
-    <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/png" href="/icon2.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#faf7f2" />
 
-    <title>{title}</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
 
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Rojan Dahal" />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content="/og.svg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image" content={ogImageUrl} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="/og.svg" />
+    <meta name="twitter:image" content={ogImageUrl} />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <link rel="alternate" type="application/rss+xml" title="Rojan Dahal — Writing" href="/rss.xml" />
+
+    <link rel="sitemap" href="/sitemap-index.xml" />
   </head>
-  <body>
-    <slot />
+  <body class="flex min-h-dvh flex-col">
+    <Nav />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // Reveal-on-scroll: toggles .is-visible on [data-reveal] when they enter the viewport.
+      const reveal = () => {
+        const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          els.forEach((el) => el.classList.add('is-visible'));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+        );
+        els.forEach((el) => io.observe(el));
+      };
+
+      if (document.readyState !== 'loading') reveal();
+      else document.addEventListener('DOMContentLoaded', reveal);
+    </script>
   </body>
 </html>

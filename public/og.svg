@@ -1,40 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0908"/>
-      <stop offset="1" stop-color="#13141a"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.85" cy="0.1" r="0.6">
-      <stop offset="0" stop-color="#ffb547" stop-opacity="0.18"/>
-      <stop offset="1" stop-color="#ffb547" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect width="1200" height="630" fill="url(#glow)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="Georgia, 'Times New Roman', serif">
+  <rect width="1200" height="630" fill="#faf7f2"/>
+  <g stroke="#1a1a1a" stroke-opacity="0.12" stroke-width="1">
+    <line x1="80" y1="100" x2="1120" y2="100"/>
+    <line x1="80" y1="530" x2="1120" y2="530"/>
+  </g>
+  <text x="80" y="78" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="20" fill="#b54a2a" letter-spacing="3.6" font-weight="500">ROJAN DAHAL</text>
+  <text x="1120" y="78" text-anchor="end" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="20" fill="#8a8782" letter-spacing="3.6">AI ENGINEER</text>
 
-  <!-- top bar -->
-  <line x1="64" y1="80" x2="1136" y2="80" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-  <text x="64" y="60" fill="#ffb547" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">● AVAILABLE FOR FULL-TIME · DEC 2025 GRAD</text>
+  <text x="80" y="260" font-size="76" fill="#1a1a1a" font-style="italic">Building production ML</text>
+  <text x="80" y="350" font-size="76" fill="#1a1a1a">systems that actually ship.</text>
 
-  <!-- section number -->
-  <text x="64" y="260" fill="#5b6068" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">00 / ENTRY</text>
+  <text x="80" y="510" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="22" fill="#4a4845">Writing about retrieval, agents, and the parts of the job that aren&#8217;t modeling.</text>
 
-  <!-- display name -->
-  <text x="64" y="380" fill="#ececef" font-family="'Instrument Serif', 'Times New Roman', serif" font-size="140" letter-spacing="-3">Rojan <tspan font-style="italic">Dahal</tspan></text>
-
-  <!-- tagline -->
-  <text x="64" y="460" fill="#ececef" font-family="'IBM Plex Sans', system-ui, sans-serif" font-size="28">
-    <tspan>I build the systems that </tspan>
-    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">gate</tspan>
-    <tspan>, </tspan>
-    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">validate</tspan>
-    <tspan>, and </tspan>
-    <tspan fill="#ffb547" font-style="italic" font-family="'Instrument Serif', serif">govern</tspan>
-    <tspan> other AI systems.</tspan>
-  </text>
-
-  <!-- bottom rail -->
-  <line x1="64" y1="540" x2="1136" y2="540" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-  <text x="64" y="580" fill="#9095a0" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">MS DATA SCIENCE · GPA 4.0 · 4+ YRS PRODUCTION ML</text>
-  <text x="1136" y="580" text-anchor="end" fill="#5b6068" font-family="ui-monospace, Menlo, monospace" font-size="14" letter-spacing="3">rojandahal.com</text>
+  <text x="1120" y="600" text-anchor="end" font-family="ui-monospace, 'JetBrains Mono', monospace" font-size="18" fill="#8a8782" letter-spacing="2">rojandahal.com</text>
 </svg>

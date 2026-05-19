@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('work', ({ data }) => !data.draft);
+  return projects.map((p) => ({
+    params: { slug: p.id },
+    props: { project: p },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<Base title={project.data.title} description={project.data.summary} ogType="article">
+  <article class="container-x py-16 sm:py-24">
+    <header class="measure mb-12" data-reveal>
+      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+        Case study &middot; {project.data.role}
+      </p>
+      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
+        {project.data.title}
+      </h1>
+      <p class="dek mt-5">{project.data.summary}</p>
+
+      <div class="mt-8 grid gap-x-8 gap-y-2 border-t border-[var(--color-rule)] pt-4 text-[14px] sm:grid-cols-[120px_1fr]">
+        <span class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-faint)]">Period</span>
+        <span class="text-[var(--color-ink-soft)]">{project.data.period}</span>
+
+        <span class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-faint)]">Stack</span>
+        <span class="text-[var(--color-ink-soft)]">{project.data.stack.join(' · ')}</span>
+      </div>
+    </header>
+
+    <div class="prose" data-reveal>
+      <Content />
+    </div>
+
+    <hr />
+
+    <div class="measure mt-10 flex flex-wrap items-baseline justify-between gap-4 text-[14px] text-[var(--color-ink-soft)]">
+      <a href="/work" class="link-grow uppercase tracking-[0.14em]">
+        &larr; All work
+      </a>
+      <a href="mailto:rojandahal1026@gmail.com" class="link-rule text-[var(--color-rust)]">
+        Get in touch
+      </a>
+    </div>
+  </article>
+</Base>

@@ -1,36 +1,167 @@
 ---
-import Base from "../layouts/Base.astro";
-import Nav from "../components/Nav.astro";
-import SceneHost from "../components/SceneHost.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Signals from "../components/Signals.astro";
-import Work from "../components/Work.astro";
-import Research from "../components/Research.astro";
-import Contact from "../components/Contact.astro";
-import InferenceLog from "../components/InferenceLog";
+import Base from '../layouts/Base.astro';
+import EssayCard from '../components/EssayCard.astro';
+import WorkCard from '../components/WorkCard.astro';
+import { getCollection } from 'astro:content';
+import { minutesOf } from '../lib/reading';
 
-const title = "Rojan Dahal — AI / ML Engineer · Production AI Systems";
-const description =
-  "Rojan Dahal — AI Researcher and ML Engineer. Builder of the Gatekeeper at TitanCloud (4-layer hybrid classifier in front of an AWS Bedrock VLM extraction agent). MS Data Science, GPA 4.0. Open to full-time mid-2026.";
+const allWriting = (await getCollection('writing', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const featuredWriting = allWriting.filter((p) => p.data.featured).slice(0, 3);
+const recentWriting = featuredWriting.length === 3 ? featuredWriting : allWriting.slice(0, 3);
+
+const allWork = (await getCollection('work', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const featuredWork = allWork.filter((p) => p.data.featured).slice(0, 3);
+const recentWork = featuredWork.length >= 2 ? featuredWork : allWork.slice(0, 3);
 ---
-<Base title={title} description={description}>
-  <SceneHost />
-  <Nav />
-  <main>
-    <Hero />
-    <About />
-    <Signals />
-    <Work />
-    <Research />
-    <Contact />
-  </main>
 
-  <InferenceLog client:idle />
+<Base title="Rojan Dahal — AI Engineer">
+  <!-- HERO -->
+  <section class="container-x pt-20 pb-16 sm:pt-28 sm:pb-24">
+    <div class="measure-wide" data-reveal>
+      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+        AI Engineer &middot; TitanCloud
+      </p>
+      <h1 class="display mt-4 text-[clamp(2.6rem,5vw+1rem,5rem)]">
+        Building production ML systems that <span class="display-italic">actually ship</span>.
+      </h1>
+      <p class="dek mt-7 measure">
+        Most of the work of an LLM pipeline happens upstream of the model. I write about the
+        layers that filter, route, and validate before a single token is spent &mdash; and
+        I build them for a living.
+      </p>
 
+      <div class="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3 text-[14px] uppercase tracking-[0.14em]">
+        <a href="/writing" class="link-grow text-[var(--color-rust)]">
+          Read selected writing &rarr;
+        </a>
+        <a href="/work" class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+          See the work
+        </a>
+        <a href="/about" class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+          About
+        </a>
+      </div>
+    </div>
+  </section>
 
-  <script>
-    // Lenis + GSAP smooth-scroll setup (skipped under reduced motion).
-    import "../lib/smooth-scroll";
-  </script>
+  <!-- RECENT WRITING -->
+  <section class="container-x pb-24">
+    <header class="mb-8 flex items-baseline justify-between border-t border-[var(--color-rule-strong)] pt-6" data-reveal>
+      <h2 class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-soft)]">
+        Recent Writing
+      </h2>
+      <a href="/writing" class="mono link-grow text-[12px] uppercase tracking-[0.14em] text-[var(--color-rust)]">
+        All essays &rarr;
+      </a>
+    </header>
+
+    <div>
+      {
+        recentWriting.map((post) => (
+          <EssayCard
+            href={`/writing/${post.id}`}
+            title={post.data.title}
+            dek={post.data.dek}
+            date={post.data.date}
+            minutes={minutesOf(post.body ?? '')}
+          />
+        ))
+      }
+      <div class="border-t border-[var(--color-rule)]" />
+    </div>
+  </section>
+
+  <!-- SELECTED WORK -->
+  <section class="container-x pb-24">
+    <header class="mb-8 flex items-baseline justify-between border-t border-[var(--color-rule-strong)] pt-6" data-reveal>
+      <h2 class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-soft)]">
+        Selected Work
+      </h2>
+      <a href="/work" class="mono link-grow text-[12px] uppercase tracking-[0.14em] text-[var(--color-rust)]">
+        All projects &rarr;
+      </a>
+    </header>
+
+    <div>
+      {
+        recentWork.map((p) => (
+          <WorkCard
+            href={`/work/${p.id}`}
+            title={p.data.title}
+            role={p.data.role}
+            period={p.data.period}
+            summary={p.data.summary}
+            stack={p.data.stack}
+          />
+        ))
+      }
+      <div class="border-t border-[var(--color-rule)]" />
+    </div>
+  </section>
+
+  <!-- ABOUT TEASER -->
+  <section class="container-x pb-24">
+    <div class="grid gap-12 border-t border-[var(--color-rule-strong)] pt-10 sm:grid-cols-[180px_1fr]" data-reveal>
+      <h2 class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-soft)]">
+        About
+      </h2>
+      <div class="measure">
+        <p class="display text-[clamp(1.6rem,2vw+0.8rem,2.2rem)] leading-tight">
+          I&rsquo;m an AI Engineer at TitanCloud and an MS Data Science candidate at Gannon
+          University (4.0 GPA, graduating December 2025).
+        </p>
+        <p class="mt-5 text-[17px] leading-[1.7] text-[var(--color-ink-soft)]">
+          Before TitanCloud I shipped on-device computer vision at BitsKraft and ran the
+          shared ML infrastructure for a research group of seven faculty. I care more about
+          the boring layers of a system than the model at the bottom &mdash; because the
+          model is rarely what&rsquo;s broken.
+        </p>
+        <p class="mt-7">
+          <a href="/about" class="mono link-rule text-[14px] uppercase tracking-[0.14em] text-[var(--color-rust)]">
+            Read the longer version &rarr;
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="container-x pb-32">
+    <div class="grid gap-12 border-t border-[var(--color-rule-strong)] pt-10 sm:grid-cols-[180px_1fr]" data-reveal>
+      <h2 class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-soft)]">
+        Contact
+      </h2>
+      <div class="measure">
+        <p class="display text-[clamp(1.6rem,2vw+0.8rem,2.2rem)] leading-tight">
+          Looking for a full-time AI / ML role starting mid-2026.
+          <span class="display-italic">F-1 OPT, open to relocation.</span>
+        </p>
+        <p class="mt-6 text-[17px] leading-[1.7] text-[var(--color-ink-soft)]">
+          Best way to reach me is email. I read everything and reply to most things within
+          a day or two.
+        </p>
+        <ul class="mt-7 space-y-2 text-[16px]">
+          <li>
+            <a class="link-rule text-[var(--color-rust)]" href="mailto:rojandahal1026@gmail.com">
+              rojandahal1026@gmail.com
+            </a>
+          </li>
+          <li>
+            <a class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]" href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">
+              linkedin.com/in/rojandahal
+            </a>
+          </li>
+          <li>
+            <a class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]" href="https://github.com/DahalRojan" target="_blank" rel="noopener noreferrer">
+              github.com/DahalRojan
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
 </Base>
