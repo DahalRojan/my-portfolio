@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { getLangFromUrl, useTranslations, altLangPath } from '../i18n/utils';
 
 interface Props {
   title: string;
@@ -12,9 +13,12 @@ interface Props {
   noindex?: boolean;
 }
 
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
 const {
   title,
-  description = 'Rojan Dahal — AI Engineer working on production ML systems. Writing about retrieval, agents, and the parts of the job that aren’t modeling.',
+  description = t('site.tagline'),
   ogImage = '/og.svg',
   ogType = 'website',
   publishedTime,
@@ -22,13 +26,15 @@ const {
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const altUrl = new URL(altLangPath(Astro.url, lang), Astro.site).toString();
 const ogImageUrl = new URL(ogImage, Astro.site).toString();
-const fullTitle =
-  Astro.url.pathname === '/' ? title : `${title} — Rojan Dahal`;
+
+const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/ne/' || Astro.url.pathname === '/ne';
+const fullTitle = isHome ? title : `${title} — Rojan Dahal`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,6 +45,10 @@ const fullTitle =
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={lang === 'en' ? 'ne' : 'en'} href={altUrl} />
+    <link rel="alternate" hreflang="x-default" href={lang === 'en' ? canonical : altUrl} />
+
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <meta property="og:type" content={ogType} />
@@ -47,6 +57,7 @@ const fullTitle =
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content={lang === 'ne' ? 'ne_NP' : 'en_US'} />
     {publishedTime && <meta property="article:published_time" content={publishedTime} />}
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -58,7 +69,12 @@ const fullTitle =
     <link rel="alternate icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <link rel="alternate" type="application/rss+xml" title="Rojan Dahal — Writing" href="/rss.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={lang === 'ne' ? 'Rojan Dahal — लेखहरू' : 'Rojan Dahal — Writing'}
+      href={lang === 'ne' ? '/ne/rss.xml' : '/rss.xml'}
+    />
 
     <link rel="sitemap" href="/sitemap-index.xml" />
   </head>
@@ -73,7 +89,10 @@ const fullTitle =
       // Reveal-on-scroll: toggles .is-visible on [data-reveal] when they enter the viewport.
       const reveal = () => {
         const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
-        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (
+          !('IntersectionObserver' in window) ||
+          matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
           els.forEach((el) => el.classList.add('is-visible'));
           return;
         }

@@ -2,23 +2,29 @@
 import Listing from '../../layouts/Listing.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import { getCollection } from 'astro:content';
+import { entrySlug, filterByLang } from '../../lib/content';
+import { useTranslations, localePath } from '../../i18n/utils';
 
-const projects = (await getCollection('work', ({ data }) => !data.draft)).sort(
-  (a, b) => a.data.order - b.data.order
-);
+const lang = 'en' as const;
+const t = useTranslations(lang);
+
+const projects = filterByLang(
+  await getCollection('work', ({ data }) => !data.draft),
+  lang
+).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <Listing
-  title="Work"
-  description="Selected projects and roles by Rojan Dahal — production ML, computer vision, and document intelligence."
-  kicker="Projects &amp; Roles"
-  intro="Where I’ve spent the last few years — a document IDP pipeline at TitanCloud, manufacturing CV research at Gannon, mobile ML at BitsKraft."
+  title={t('work.title')}
+  description={t('work.intro')}
+  kicker={t('work.kicker')}
+  intro={t('work.intro')}
 >
   <div>
     {
       projects.map((p) => (
         <WorkCard
-          href={`/work/${p.id}`}
+          href={localePath(`/work/${entrySlug(p)}`, lang)}
           title={p.data.title}
           role={p.data.role}
           period={p.data.period}

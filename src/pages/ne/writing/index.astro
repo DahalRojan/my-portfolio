@@ -1,0 +1,66 @@
+---
+import Listing from '../../../layouts/Listing.astro';
+import EssayCard from '../../../components/EssayCard.astro';
+import { getCollection } from 'astro:content';
+import { minutesOf } from '../../../lib/reading';
+import { entrySlug, filterByLang, bySlug } from '../../../lib/content';
+import { useTranslations, localePath } from '../../../i18n/utils';
+
+const lang = 'ne' as const;
+const t = useTranslations(lang);
+
+const raw = await getCollection('writing', ({ data }) => !data.draft);
+const ne = filterByLang(raw, 'ne').sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const en = filterByLang(raw, 'en').sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const neBySlug = bySlug(ne);
+
+const onlyEn = en.filter((p) => !neBySlug.has(entrySlug(p)));
+---
+
+<Listing
+  title={t('writing.title')}
+  description={t('writing.intro')}
+  kicker={t('writing.kicker')}
+  intro={t('writing.intro')}
+>
+  {
+    ne.length > 0 && (
+      <div>
+        {ne.map((post) => (
+          <EssayCard
+            href={localePath(`/writing/${entrySlug(post)}`, lang)}
+            title={post.data.title}
+            dek={post.data.dek}
+            date={post.data.date}
+            minutes={minutesOf(post.body ?? '')}
+          />
+        ))}
+        <div class="border-t border-[var(--color-rule)]" />
+      </div>
+    )
+  }
+
+  {
+    onlyEn.length > 0 && (
+      <div class="mt-16">
+        <p class="mono mb-6 text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-faint)]">
+          अहिले अङ्ग्रेजीमा मात्र उपलब्ध
+        </p>
+        {onlyEn.map((post) => (
+          <EssayCard
+            href={`/writing/${entrySlug(post)}`}
+            title={post.data.title}
+            dek={post.data.dek}
+            date={post.data.date}
+            minutes={minutesOf(post.body ?? '')}
+          />
+        ))}
+        <div class="border-t border-[var(--color-rule)]" />
+      </div>
+    )
+  }
+
+  <p class="mt-10 text-[14px] text-[var(--color-ink-soft)]">
+    {t('writing.subscribe.before')}<a class="link-rule text-[var(--color-rust)]" href="/ne/rss.xml">{t('writing.subscribe.rss')}</a>{t('writing.subscribe.middle')}<a class="link-rule" href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">{t('writing.subscribe.linkedin')}</a>{t('writing.subscribe.after')}
+  </p>
+</Listing>

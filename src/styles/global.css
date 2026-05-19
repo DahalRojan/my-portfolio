@@ -14,9 +14,16 @@
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
 
+/* Devanagari (Nepali / Hindi) — browser lazy-loads via unicode-range,
+   so English-only pages don't download these files. */
+@import "@fontsource/noto-serif-devanagari/400.css";
+@import "@fontsource/noto-serif-devanagari/600.css";
+@import "@fontsource/ibm-plex-sans-devanagari/400.css";
+@import "@fontsource/ibm-plex-sans-devanagari/500.css";
+
 @theme {
-  --font-display: "Instrument Serif", "Times New Roman", Georgia, serif;
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Instrument Serif", "Noto Serif Devanagari", "Times New Roman", Georgia, serif;
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Menlo", monospace;
 
   /* Editorial palette: warm cream paper, ink, single rust accent */
@@ -83,6 +90,17 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* Nepali: prefer Devanagari serif for display; loosen line-height for tall conjuncts. */
+  html[lang="ne"] {
+    --font-display: "Noto Serif Devanagari", "Instrument Serif", Georgia, serif;
+    --font-sans: "IBM Plex Sans Devanagari", "IBM Plex Sans", system-ui, sans-serif;
+  }
+  html[lang="ne"] body { line-height: 1.7; }
+  html[lang="ne"] .display { letter-spacing: 0; line-height: 1.18; }
+  html[lang="ne"] .display-italic { font-style: normal; }
+  html[lang="ne"] .prose { line-height: 1.85; }
+  html[lang="ne"] .prose h2 { line-height: 1.28; }
 }
 
 @layer components {

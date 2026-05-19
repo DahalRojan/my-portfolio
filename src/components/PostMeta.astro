@@ -1,4 +1,6 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
 interface Props {
   date: Date;
   updated?: Date;
@@ -7,9 +9,15 @@ interface Props {
 }
 
 const { date, updated, tags = [], minutes } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 
 const fmt = (d: Date) =>
-  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  d.toLocaleDateString(lang === 'ne' ? 'ne-NP' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
 const dateIso = date.toISOString();
 const updatedIso = updated?.toISOString();
@@ -20,20 +28,20 @@ const updatedIso = updated?.toISOString();
   {
     updated && (
       <time datetime={updatedIso} class="tabnums">
-        &middot; updated {fmt(updated)}
+        &middot; {t('meta.updated')} {fmt(updated)}
       </time>
     )
   }
   {
     minutes != null && (
-      <span class="tabnums">&middot; {minutes} min read</span>
+      <span class="tabnums">&middot; {minutes} {t('meta.minRead')}</span>
     )
   }
   {
     tags.length > 0 && (
       <span class="flex flex-wrap gap-x-3">
-        {tags.map((t) => (
-          <span class="text-[var(--color-ink-faint)]">#{t}</span>
+        {tags.map((tag) => (
+          <span class="text-[var(--color-ink-faint)]">#{tag}</span>
         ))}
       </span>
     )

@@ -1,0 +1,63 @@
+---
+import Listing from '../../../layouts/Listing.astro';
+import WorkCard from '../../../components/WorkCard.astro';
+import { getCollection } from 'astro:content';
+import { entrySlug, filterByLang, bySlug } from '../../../lib/content';
+import { useTranslations, localePath } from '../../../i18n/utils';
+
+const lang = 'ne' as const;
+const t = useTranslations(lang);
+
+const raw = await getCollection('work', ({ data }) => !data.draft);
+const ne = filterByLang(raw, 'ne').sort((a, b) => a.data.order - b.data.order);
+const en = filterByLang(raw, 'en').sort((a, b) => a.data.order - b.data.order);
+const neBySlug = bySlug(ne);
+
+const onlyEn = en.filter((p) => !neBySlug.has(entrySlug(p)));
+---
+
+<Listing
+  title={t('work.title')}
+  description={t('work.intro')}
+  kicker={t('work.kicker')}
+  intro={t('work.intro')}
+>
+  {
+    ne.length > 0 && (
+      <div>
+        {ne.map((p) => (
+          <WorkCard
+            href={localePath(`/work/${entrySlug(p)}`, lang)}
+            title={p.data.title}
+            role={p.data.role}
+            period={p.data.period}
+            summary={p.data.summary}
+            stack={p.data.stack}
+          />
+        ))}
+        <div class="border-t border-[var(--color-rule)]" />
+      </div>
+    )
+  }
+
+  {
+    onlyEn.length > 0 && (
+      <div class="mt-16">
+        <p class="mono mb-6 text-[12px] uppercase tracking-[0.18em] text-[var(--color-ink-faint)]">
+          अहिले अङ्ग्रेजीमा मात्र उपलब्ध
+        </p>
+        {onlyEn.map((p) => (
+          <WorkCard
+            href={`/work/${entrySlug(p)}`}
+            title={p.data.title}
+            role={p.data.role}
+            period={p.data.period}
+            summary={p.data.summary}
+            stack={p.data.stack}
+          />
+        ))}
+        <div class="border-t border-[var(--color-rule)]" />
+      </div>
+    )
+  }
+</Listing>

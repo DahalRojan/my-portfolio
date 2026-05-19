@@ -1,5 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import { useTranslations } from '../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
 ---
 
 <Base
@@ -9,10 +13,10 @@ import Base from '../layouts/Base.astro';
   <article class="container-x py-16 sm:py-24">
     <header class="measure mb-12" data-reveal>
       <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
-        About
+        {t('about.kicker')}
       </p>
       <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
-        I build the parts of an ML system that <span class="display-italic">aren&rsquo;t the model</span>.
+        {t('about.title.before')}<span class="display-italic">{t('about.title.italic')}</span>{t('about.title.after')}
       </h1>
     </header>
 

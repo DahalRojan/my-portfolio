@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import PostMeta from '../components/PostMeta.astro';
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
 
 interface Props {
   title: string;
@@ -13,6 +14,8 @@ interface Props {
 }
 
 const { title, dek, date, updated, tags = [], minutes, ogImage } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 const isoDate = date.toISOString();
 ---
 
@@ -26,7 +29,7 @@ const isoDate = date.toISOString();
   <article class="container-x py-16 sm:py-24">
     <header class="measure mb-12" data-reveal>
       <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
-        Essay
+        {t('meta.essay')}
       </p>
       <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
         {title}
@@ -44,11 +47,14 @@ const isoDate = date.toISOString();
     <hr />
 
     <div class="measure mt-10 flex flex-wrap items-baseline justify-between gap-4 text-[14px] text-[var(--color-ink-soft)]">
-      <a href="/writing" class="link-grow uppercase tracking-[0.14em]">
-        &larr; All writing
+      <a href={localePath('/writing', lang)} class="link-grow uppercase tracking-[0.14em]">
+        {t('cta.backToWriting')}
       </a>
       <span>
-        Found a mistake? <a class="link-rule text-[var(--color-rust)]" href="mailto:rojandahal1026@gmail.com?subject=re: {title}">tell me</a>.
+        {t('cta.foundMistake.before')}
+        <a class="link-rule text-[var(--color-rust)]" href={`mailto:rojandahal1026@gmail.com?subject=re: ${title}`}>
+          {t('cta.foundMistake.link')}
+        </a>{t('cta.foundMistake.after')}
       </span>
     </div>
   </article>

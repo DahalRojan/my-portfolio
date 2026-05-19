@@ -1,4 +1,6 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
 interface Props {
   href: string;
   title: string;
@@ -9,6 +11,8 @@ interface Props {
 }
 
 const { href, title, role, period, summary, stack = [] } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 ---
 
 <a
@@ -17,7 +21,7 @@ const { href, title, role, period, summary, stack = [] } = Astro.props;
   data-reveal
 >
   <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-10">
-    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-32">
+    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36">
       {period}
     </div>
 
@@ -46,10 +50,8 @@ const { href, title, role, period, summary, stack = [] } = Astro.props;
       }
     </div>
 
-    <span
-      class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline"
-    >
-      Case study &rarr;
+    <span class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline">
+      {t('cta.caseStudy')}
     </span>
   </div>
 </a>

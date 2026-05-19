@@ -1,19 +1,19 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Base from '../../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
-import { entrySlug, filterByLang } from '../../lib/content';
-import { useTranslations, localePath } from '../../i18n/utils';
+import { entrySlug, filterByLang } from '../../../lib/content';
+import { useTranslations, localePath } from '../../../i18n/utils';
 
 export async function getStaticPaths() {
   const all = await getCollection('work', ({ data }) => !data.draft);
-  const enProjects = filterByLang(all, 'en');
-  return enProjects.map((project) => ({
+  const neProjects = filterByLang(all, 'ne');
+  return neProjects.map((project) => ({
     params: { slug: entrySlug(project) },
     props: { project },
   }));
 }
 
-const lang = 'en' as const;
+const lang = 'ne' as const;
 const t = useTranslations(lang);
 const { project } = Astro.props;
 const { Content } = await render(project);

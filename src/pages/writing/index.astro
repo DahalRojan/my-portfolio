@@ -3,23 +3,29 @@ import Listing from '../../layouts/Listing.astro';
 import EssayCard from '../../components/EssayCard.astro';
 import { getCollection } from 'astro:content';
 import { minutesOf } from '../../lib/reading';
+import { entrySlug, filterByLang } from '../../lib/content';
+import { useTranslations, localePath } from '../../i18n/utils';
 
-const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.date.getTime() - a.data.date.getTime()
-);
+const lang = 'en' as const;
+const t = useTranslations(lang);
+
+const posts = filterByLang(
+  await getCollection('writing', ({ data }) => !data.draft),
+  lang
+).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
 <Listing
-  title="Writing"
-  description="Essays by Rojan Dahal on production ML, agents, retrieval, and the parts of building AI systems that aren’t modeling."
-  kicker="Essays · Updated monthly"
-  intro="On building production ML — the four layers before the LLM, the routing decisions upstream of the model, and field reports from a three-agent IDP pipeline."
+  title={t('writing.title')}
+  description={t('writing.intro')}
+  kicker={t('writing.kicker')}
+  intro={t('writing.intro')}
 >
   <div>
     {
       posts.map((post) => (
         <EssayCard
-          href={`/writing/${post.id}`}
+          href={localePath(`/writing/${entrySlug(post)}`, lang)}
           title={post.data.title}
           dek={post.data.dek}
           date={post.data.date}
@@ -31,8 +37,6 @@ const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
   </div>
 
   <p class="mt-10 text-[14px] text-[var(--color-ink-soft)]">
-    Subscribe via <a class="link-rule text-[var(--color-rust)]" href="/rss.xml">RSS</a> &middot;
-    or follow on
-    <a class="link-rule" href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+    {t('writing.subscribe.before')}<a class="link-rule text-[var(--color-rust)]" href="/rss.xml">{t('writing.subscribe.rss')}</a>{t('writing.subscribe.middle')}<a class="link-rule" href="https://www.linkedin.com/in/rojandahal/" target="_blank" rel="noopener noreferrer">{t('writing.subscribe.linkedin')}</a>{t('writing.subscribe.after')}
   </p>
 </Listing>

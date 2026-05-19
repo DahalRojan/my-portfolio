@@ -1,13 +1,13 @@
 ---
-import Post from '../../layouts/Post.astro';
+import Post from '../../../layouts/Post.astro';
 import { getCollection, render } from 'astro:content';
-import { minutesOf } from '../../lib/reading';
-import { entrySlug, filterByLang } from '../../lib/content';
+import { minutesOf } from '../../../lib/reading';
+import { entrySlug, filterByLang } from '../../../lib/content';
 
 export async function getStaticPaths() {
   const all = await getCollection('writing', ({ data }) => !data.draft);
-  const enPosts = filterByLang(all, 'en');
-  return enPosts.map((post) => ({
+  const nePosts = filterByLang(all, 'ne');
+  return nePosts.map((post) => ({
     params: { slug: entrySlug(post) },
     props: { post },
   }));

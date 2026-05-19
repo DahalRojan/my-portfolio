@@ -1,15 +1,22 @@
 ---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
 interface Props {
   href: string;
   title: string;
   dek?: string;
   date: Date;
   minutes?: number;
-  variant?: 'compact' | 'wide';
 }
 
-const { href, title, dek, date, minutes, variant = 'wide' } = Astro.props;
-const fmt = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const { href, title, dek, date, minutes } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const fmt = date.toLocaleDateString(lang === 'ne' ? 'ne-NP' : 'en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 ---
 
 <a
@@ -18,9 +25,9 @@ const fmt = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', y
   data-reveal
 >
   <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-10">
-    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-32">
+    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36">
       <time datetime={date.toISOString()} class="tabnums">{fmt}</time>
-      {minutes != null && <span class="ml-3 sm:ml-0 sm:block">{minutes} min</span>}
+      {minutes != null && <span class="ml-3 sm:ml-0 sm:block">{minutes} {t('meta.min')}</span>}
     </div>
 
     <div class="flex-1">
@@ -36,10 +43,8 @@ const fmt = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', y
       }
     </div>
 
-    <span
-      class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline"
-    >
-      Read &rarr;
+    <span class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline">
+      {t('cta.read')}
     </span>
   </div>
 </a>

@@ -1,33 +1,43 @@
 ---
+import { getLangFromUrl, useTranslations, altLangPath, localePath } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
 const { pathname } = Astro.url;
-const isActive = (href: string) =>
-  href === '/'
-    ? pathname === '/'
-    : pathname === href || pathname.startsWith(href + '/');
 
 const links = [
-  { href: '/writing', label: 'Writing' },
-  { href: '/work', label: 'Work' },
-  { href: '/about', label: 'About' },
+  { href: localePath('/writing', lang), label: t('nav.writing'), match: '/writing' },
+  { href: localePath('/work', lang), label: t('nav.work'), match: '/work' },
+  { href: localePath('/about', lang), label: t('nav.about'), match: '/about' },
 ];
+
+const isActive = (matchPath: string) => {
+  const stripped = lang === 'ne' ? pathname.replace(/^\/ne/, '') || '/' : pathname;
+  return stripped === matchPath || stripped.startsWith(matchPath + '/');
+};
+
+const altPath = altLangPath(Astro.url, lang);
 ---
 
 <header class="border-b border-[var(--color-rule)]">
-  <div class="container-x flex items-baseline justify-between py-5">
-    <a href="/" class="display text-[1.5rem] leading-none tracking-tight link-grow">
+  <div class="container-x flex items-baseline justify-between gap-6 py-5">
+    <a
+      href={localePath('/', lang)}
+      class="display text-[1.5rem] leading-none tracking-tight link-grow"
+    >
       Rojan Dahal
     </a>
 
     <nav aria-label="Primary">
-      <ul class="flex items-baseline gap-7 text-[14px] uppercase tracking-[0.14em]">
+      <ul class="flex items-baseline gap-5 text-[14px] uppercase tracking-[0.14em] sm:gap-7">
         {
-          links.map(({ href, label }) => (
+          links.map(({ href, label, match }) => (
             <li>
               <a
                 href={href}
                 class:list={[
                   'link-grow',
-                  isActive(href)
+                  isActive(match)
                     ? 'text-[var(--color-rust)]'
                     : 'text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]',
                 ]}
@@ -37,7 +47,28 @@ const links = [
             </li>
           ))
         }
+        <li class="hidden border-l border-[var(--color-rule)] pl-5 sm:block">
+          <a
+            href={altPath}
+            hreflang={lang === 'en' ? 'ne' : 'en'}
+            aria-label={t('lang.switch.aria')}
+            class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]"
+          >
+            {t('lang.switch.label')}
+          </a>
+        </li>
       </ul>
     </nav>
+  </div>
+
+  <div class="container-x border-t border-[var(--color-rule)] py-2 text-center sm:hidden">
+    <a
+      href={altPath}
+      hreflang={lang === 'en' ? 'ne' : 'en'}
+      aria-label={t('lang.switch.aria')}
+      class="link-grow text-[12px] uppercase tracking-[0.14em] text-[var(--color-ink-soft)]"
+    >
+      {t('lang.switch.label')}
+    </a>
   </div>
 </header>

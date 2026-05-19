@@ -1,12 +1,12 @@
 ---
-import Base from '../layouts/Base.astro';
-import { useTranslations, localePath } from '../i18n/utils';
+import Base from '../../layouts/Base.astro';
+import { useTranslations, localePath } from '../../i18n/utils';
 
-const lang = 'en' as const;
+const lang = 'ne' as const;
 const t = useTranslations(lang);
 ---
 
-<Base title="Not found" noindex>
+<Base title="भेटिएन" noindex>
   <section class="container-x py-32 sm:py-48">
     <div class="measure" data-reveal>
       <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">

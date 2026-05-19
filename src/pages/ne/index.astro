@@ -1,31 +1,53 @@
 ---
-import Base from '../layouts/Base.astro';
-import EssayCard from '../components/EssayCard.astro';
-import WorkCard from '../components/WorkCard.astro';
+import Base from '../../layouts/Base.astro';
+import EssayCard from '../../components/EssayCard.astro';
+import WorkCard from '../../components/WorkCard.astro';
 import { getCollection } from 'astro:content';
-import { minutesOf } from '../lib/reading';
-import { entrySlug, filterByLang } from '../lib/content';
-import { useTranslations, localePath } from '../i18n/utils';
+import { minutesOf } from '../../lib/reading';
+import { entrySlug, filterByLang, bySlug } from '../../lib/content';
+import { useTranslations, localePath } from '../../i18n/utils';
 
-const lang = 'en' as const;
+const lang = 'ne' as const;
 const t = useTranslations(lang);
 
-const allWriting = filterByLang(
-  await getCollection('writing', ({ data }) => !data.draft),
-  lang
-).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const featuredWriting = allWriting.filter((p) => p.data.featured).slice(0, 3);
-const recentWriting = featuredWriting.length === 3 ? featuredWriting : allWriting.slice(0, 3);
+const allWritingRaw = await getCollection('writing', ({ data }) => !data.draft);
+const enWriting = filterByLang(allWritingRaw, 'en').sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const neWriting = filterByLang(allWritingRaw, 'ne').sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const neBySlug = bySlug(neWriting);
 
-const allWork = filterByLang(
-  await getCollection('work', ({ data }) => !data.draft),
-  lang
-).sort((a, b) => a.data.order - b.data.order);
-const featuredWork = allWork.filter((p) => p.data.featured).slice(0, 3);
-const recentWork = featuredWork.length >= 2 ? featuredWork : allWork.slice(0, 3);
+// Pick 3 most recent featured essays; prefer the Nepali version when it exists, otherwise English.
+const featuredEn = enWriting.filter((p) => p.data.featured).slice(0, 3);
+const recentWriting = (featuredEn.length === 3 ? featuredEn : enWriting.slice(0, 3)).map((p) => {
+  const slug = entrySlug(p);
+  const ne = neBySlug.get(slug);
+  return {
+    entry: ne ?? p,
+    href: ne ? localePath(`/writing/${slug}`, 'ne') : `/writing/${slug}`,
+    untranslated: !ne,
+  };
+});
+
+const allWorkRaw = await getCollection('work', ({ data }) => !data.draft);
+const enWork = filterByLang(allWorkRaw, 'en').sort((a, b) => a.data.order - b.data.order);
+const neWork = filterByLang(allWorkRaw, 'ne');
+const neWorkBySlug = bySlug(neWork);
+
+const featuredEnWork = enWork.filter((p) => p.data.featured).slice(0, 3);
+const recentWork = (featuredEnWork.length >= 2 ? featuredEnWork : enWork.slice(0, 3)).map((p) => {
+  const slug = entrySlug(p);
+  const ne = neWorkBySlug.get(slug);
+  return {
+    entry: ne ?? p,
+    href: ne ? localePath(`/work/${slug}`, 'ne') : `/work/${slug}`,
+  };
+});
 ---
 
-<Base title="Rojan Dahal — AI Engineer">
+<Base title="Rojan Dahal — एआई इन्जिनियर">
   <section class="container-x pt-20 pb-16 sm:pt-28 sm:pb-24">
     <div class="measure-wide" data-reveal>
       <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
@@ -64,13 +86,13 @@ const recentWork = featuredWork.length >= 2 ? featuredWork : allWork.slice(0, 3)
 
     <div>
       {
-        recentWriting.map((post) => (
+        recentWriting.map(({ entry, href, untranslated }) => (
           <EssayCard
-            href={localePath(`/writing/${entrySlug(post)}`, lang)}
-            title={post.data.title}
-            dek={post.data.dek}
-            date={post.data.date}
-            minutes={minutesOf(post.body ?? '')}
+            href={href}
+            title={entry.data.title + (untranslated ? ' (in English)' : '')}
+            dek={entry.data.dek}
+            date={entry.data.date}
+            minutes={minutesOf(entry.body ?? '')}
           />
         ))
       }
@@ -90,14 +112,14 @@ const recentWork = featuredWork.length >= 2 ? featuredWork : allWork.slice(0, 3)
 
     <div>
       {
-        recentWork.map((p) => (
+        recentWork.map(({ entry, href }) => (
           <WorkCard
-            href={localePath(`/work/${entrySlug(p)}`, lang)}
-            title={p.data.title}
-            role={p.data.role}
-            period={p.data.period}
-            summary={p.data.summary}
-            stack={p.data.stack}
+            href={href}
+            title={entry.data.title}
+            role={entry.data.role}
+            period={entry.data.period}
+            summary={entry.data.summary}
+            stack={entry.data.stack}
           />
         ))
       }
