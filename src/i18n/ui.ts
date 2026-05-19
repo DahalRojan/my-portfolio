@@ -56,7 +56,7 @@ export const ui: Record<Lang, Dict> = {
     'meta.stack': 'Stack',
 
     'home.about.body.1':
-      'I’m an AI Engineer at TitanCloud and an MS Data Science candidate at Gannon University (4.0 GPA, graduating December 2025).',
+      'I’m an AI Engineer at TitanCloud. I hold an MS in Data Science from Gannon University, completed December 2025 with a 4.0 GPA.',
     'home.about.body.2':
       'Before TitanCloud I shipped on-device computer vision at BitsKraft and ran the shared ML infrastructure for a research group of seven faculty. I care more about the boring layers of a system than the model at the bottom — because the model is rarely what’s broken.',
 
@@ -156,7 +156,7 @@ export const ui: Record<Lang, Dict> = {
     'meta.stack': 'स्ट्याक',
 
     'home.about.body.1':
-      'म TitanCloud मा एआई इन्जिनियर हुँ, र Gannon विश्वविद्यालयमा एमएस डेटा साइन्सको विद्यार्थी (४.० जीपीए, डिसेम्बर २०२५ मा स्नातकोत्तर सकिने)।',
+      'म TitanCloud मा एआई इन्जिनियर हुँ। मेरो Gannon विश्वविद्यालयबाट एमएस डेटा साइन्स डिसेम्बर २०२५ मा ४.० जीपीएसहित पूरा भएको छ।',
     'home.about.body.2':
       'TitanCloud अघि मैले BitsKraft मा अन-डिभाइस कम्प्युटर भिजन मोडेलहरू सिप गरें, र सात जना प्राध्यापकहरूको अनुसन्धान समूहको साझा एमएल पूर्वाधार सम्हालें। मोडेलभन्दा प्रणालीका “निरस” तहहरू मलाई बढी मनपर्छन् — किनभने वास्तविक प्रणाली बिग्रिँदा प्रायः मोडेल बिग्रेको हुँदैन।',
 
