@@ -1,0 +1,47 @@
+---
+/**
+ * Theme toggle. Deliberately stateless in markup: the icons are both
+ * rendered and CSS picks which one shows, so the button is correct at
+ * first paint without JS having run. The click handler and the
+ * aria-label live in Base.astro's delegated script.
+ */
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  aria-label="Switch theme"
+  aria-pressed="false"
+  class="grid size-9 place-items-center rounded-full text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-paper-raised)] hover:text-[var(--color-ink)]"
+>
+  <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+  </svg>
+  <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"></path>
+  </svg>
+</button>
+
+<style>
+  /* Show the icon for the theme you'd switch *to* — light mode offers
+     the moon, dark mode offers the sun. Driven entirely by CSS so it
+     is right before any script runs. */
+  .icon-sun { display: none; }
+  .icon-moon { display: block; }
+
+  :global(:root[data-theme='dark']) .icon-sun { display: block; }
+  :global(:root[data-theme='dark']) .icon-moon { display: none; }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .icon-sun { display: block; }
+    :global(:root:not([data-theme='light'])) .icon-moon { display: none; }
+  }
+
+  button svg { transition: rotate var(--dur-3) var(--ease-spring); }
+  button:hover svg { rotate: 25deg; }
+
+  @media (prefers-reduced-motion: reduce) {
+    button:hover svg { rotate: none; }
+  }
+</style>

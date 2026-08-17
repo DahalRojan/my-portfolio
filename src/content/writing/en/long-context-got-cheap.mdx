@@ -1,0 +1,116 @@
+---
+title: "Long context got cheap. Your prompt didn't."
+dek: "Million-token windows are table stakes now. The bill didn't disappear — it moved somewhere most pipelines aren't looking."
+date: 2026-08-17
+tags: ["production-ml", "cost", "field-notes"]
+featured: true
+---
+
+Somewhere in the last year, the context window stopped being the interesting constraint. A million tokens is now an unremarkable number. The long-context surcharge that used to kick in past 200K — the one that quietly doubled your input cost the moment a conversation got long — has largely gone away.
+
+If you build on top of these models, that sounds like the end of a whole category of problem. It isn't. It's a relocation. The money moved from "how much can you fit" to "how many times do you send it," and most of the pipelines I've looked at are still optimising the first one.
+
+This post is about where the cost actually went, written for anyone who has to explain the bill to someone else.
+
+## What a context window is, in plain terms
+
+A language model has no memory between calls. Every time you ask it something, you resend everything it needs to know: the system instructions, the tool definitions, the documents, the conversation so far, and the new question. That whole bundle is the context. The context window is the ceiling on how big the bundle can be.
+
+The important part, and the part that surprises people: you pay for the entire bundle, every single time. Not once. Every call.
+
+So a chat application with an 8,000-token system prompt pays for those 8,000 tokens on message one, and on message two, and on message four hundred. The user typed nine words. You sent eight thousand tokens.
+
+That is the actual shape of an LLM bill. Not the clever prompt at the end — the boilerplate at the front, multiplied by traffic.
+
+## Where the money went
+
+Big windows made this worse, not better, and they did it by removing the thing that used to stop you.
+
+When the window was small, you had to be disciplined. You wrote retrieval because you had no choice: you couldn't fit the corpus, so you fetched the three relevant chunks and moved on. Discipline was enforced by the ceiling.
+
+Now the ceiling is gone and the easy path is to stuff everything in. Whole documents. Full conversation history. The entire tool catalogue, in case. It works — that's the trap. It works beautifully in testing, where you make four calls, and it gets expensive in production, where you make four hundred thousand.
+
+The fix is not to go back to small contexts. Large contexts are genuinely useful, and for corpora under roughly a million tokens, sending the whole thing is often simpler and easier to evaluate than maintaining a retrieval pipeline. The fix is to stop paying full price for the parts that never change.
+
+## Caching, explained without the jargon
+
+Every major provider now offers some version of prompt caching. The mental model that works: the model can keep a warm copy of a prefix it has already processed, and on the next call, skip re-reading it.
+
+The economics are lopsided in your favour, and worth internalising as ratios rather than prices, since the prices move:
+
+- Reading from the cache costs about **a tenth** of the normal input price.
+- Writing to the cache costs about **25% more** than normal input, for the short-lived tier.
+
+Do the arithmetic on a two-call conversation. Without caching you pay 1× then 1× — two units. With caching you pay 1.25× to write, then 0.1× to read — 1.35 units. You are ahead on the second call. Everything after that is nearly free.
+
+There's a longer-lived cache tier too, which survives gaps in traffic but roughly doubles the write cost. That one needs three or four calls before it pays for itself. Use it for bursty workloads with long idle gaps; use the short tier for anything conversational.
+
+## The rule that breaks everything
+
+Here is the part that costs teams real money, and it's a single sentence:
+
+> Caching is a prefix match. Any change anywhere in the prefix invalidates everything after it.
+
+Not "mostly matches." Not "close enough." The system hashes the bytes of your prompt from the beginning. One different character at position 400 and everything from position 400 onward is a cache miss, no matter how many thousands of identical tokens follow.
+
+This has one enormous practical consequence: **stable content goes first, volatile content goes last.**
+
+That ordering is the whole discipline. Frozen system prompt, then tool definitions in a deterministic order, then the conversation, then the new question. Anything that changes per request lives at the end, where it can only invalidate itself.
+
+## The line that quietly costs you tenfold
+
+The most common way I've seen a cache silently fail is this, or something like it, at the top of a system prompt:
+
+```python
+system = f"You are a helpful assistant. Current date: {datetime.now()}."
+```
+
+That looks harmless. It is not harmless. `datetime.now()` returns a different string on every call, that string sits at the very front of the prefix, and so **nothing after it ever caches**. Not the 8,000 tokens of instructions below it. Not the tool definitions. Not the conversation. The cache hit rate for that application is zero, and there is no error message, no warning, and no obvious symptom other than a bill that seems too high.
+
+The same failure has a handful of reliable costumes:
+
+- A request ID or UUID interpolated near the top.
+- `json.dumps(config)` without sorting the keys, so the serialisation order wanders between processes.
+- A user ID in the system prompt, which makes the prefix per-user and kills sharing across your whole user base.
+- Conditional sections (`if beta_user: system += ...`), where every combination of flags is a separate prefix.
+- A tool list built per user, so the very first thing the model reads differs for everyone.
+
+None of these look like bugs. They all read like ordinary code in review. That's exactly why they survive.
+
+## The gotcha that isn't in anyone's mental model
+
+There's a minimum prompt length below which caching silently does nothing. Too short a prefix, and the system won't create an entry — no error, it just doesn't cache.
+
+The part worth writing down: **that minimum is not the same across models, and it does not move in one direction as models get newer.** Depending on which model you're on, the floor might be around 512 tokens, or 1,024, or 2,048, or 4,096. A 3,000-token prompt can cache perfectly on one model in a family and silently not cache at all on another — including an *older* one with a *higher* floor.
+
+So "we upgraded the model and costs went up" is a real phenomenon with a boring cause. Check the floor when you switch models. It's a one-line thing to look up and a genuinely annoying thing to debug from the invoice.
+
+## How to know it's working
+
+Don't reason about this. Measure it. Every response carries usage counters, and the only one that matters here is the cache-read count.
+
+```python
+print(response.usage.cache_read_input_tokens)   # served from cache (~0.1x)
+print(response.usage.cache_creation_input_tokens) # written to cache (~1.25x)
+print(response.usage.input_tokens)              # full price
+```
+
+Make two identical requests back to back. If the cache-read count is zero on the second one, you have an invalidator. Don't guess which — dump both rendered prompts to disk and diff them. The offending bytes show up immediately, and they are almost always a timestamp.
+
+One more counter worth knowing, because it confuses people: `input_tokens` is the *uncached remainder*, not the total. If your agent has been running for an hour and that number reads 4,000, the rest was served from cache. Total prompt size is all three added together. I've watched someone conclude their agent had a tiny context because they were reading one field of three.
+
+## What we actually changed
+
+In our pipeline the whole exercise came down to three unglamorous edits:
+
+1. **Moved the timestamp.** It was in the system prompt for no reason anyone could remember. It went into the user turn, at the end. That one change took the cache hit rate from zero to roughly the theoretical maximum.
+2. **Sorted the tool definitions.** They were being assembled from a dictionary, which meant the order was stable within a process and different across deploys. Sorting by name made the prefix reproducible.
+3. **Stopped rebuilding the system prompt for side calls.** Summarisation ran as a separate call that reconstructed its own prompt from scratch — same content, different bytes, zero reuse of the main conversation's cache. Copying the parent's exact prefix and appending to it was a four-line change.
+
+None of that is clever. That's rather the point. The interesting layer of an LLM system is almost never the model, and the expensive mistakes are almost never sophisticated.
+
+## The short version
+
+Long context is real and it's useful, and it removed a constraint that used to do your thinking for you. What replaced it is a discipline that lives entirely in how you order bytes: stable first, volatile last, deterministic in between, and verified with a counter rather than an assumption.
+
+Everything in this post is a ratio or a behaviour rather than a price, because prices move and behaviours don't. Check your provider's current numbers before you plan around any of it. But the prefix rule has held across every provider I've used, and I don't expect it to change — it falls out of how the caching works, not out of how anyone decided to bill for it.

@@ -20,12 +20,12 @@ export const ui: Record<Lang, Dict> = {
     'nav.skipToContent': 'Skip to content',
 
     'home.kicker': 'AI Engineer · TitanCloud',
-    'home.title.before': 'Building production ML systems that ',
-    'home.title.italic': 'actually ship',
+    'home.title.before': 'Most of an ML system ',
+    'home.title.italic': 'isn’t the model',
     'home.title.after': '.',
     'home.dek':
       'Most of the work of an LLM pipeline happens upstream of the model. I write about the layers that filter, route, and validate before a single token is spent — and I build them for a living.',
-    'home.cta.writing': 'Read selected writing →',
+    'home.cta.writing': 'Read the writing →',
     'home.cta.work': 'See the work',
     'home.cta.about': 'About',
 
@@ -56,17 +56,17 @@ export const ui: Record<Lang, Dict> = {
     'meta.stack': 'Stack',
 
     'home.about.body.1':
-      'I’m an AI Engineer at TitanCloud. I hold an MS in Data Science from Gannon University, completed December 2025 with a 4.0 GPA.',
+      'I’m an AI Engineer at TitanCloud. I finished an MS in Data Science at Gannon University in December 2025.',
     'home.about.body.2':
       'Before TitanCloud I shipped on-device computer vision at BitsKraft and ran the shared ML infrastructure for a research group of seven faculty. I care more about the boring layers of a system than the model at the bottom — because the model is rarely what’s broken.',
 
-    'home.contact.headline.before': 'Looking for a full-time AI / ML role starting mid-2026. ',
+    'home.contact.headline.before': 'I’m looking for a full-time AI / ML role starting mid-2026. ',
     'home.contact.headline.italic': 'F-1 OPT, open to relocation.',
     'home.contact.body':
       'Best way to reach me is email. I read everything and reply to most things within a day or two.',
 
     'writing.title': 'Writing',
-    'writing.kicker': 'Essays · Updated monthly',
+    'writing.kicker': 'Essays',
     'writing.intro':
       'On building production ML — the four layers before the LLM, the routing decisions upstream of the model, and field reports from a three-agent IDP pipeline.',
     'writing.subscribe.before': 'Subscribe via ',
@@ -108,6 +108,46 @@ export const ui: Record<Lang, Dict> = {
 
     'lang.switch.label': 'Read in नेपाली',
     'lang.switch.aria': 'Switch language to Nepali',
+
+    'nav.search': 'Search',
+    'nav.menu': 'Menu',
+
+    'footer.blurb':
+      'Notes on building production ML systems — the pre-filters, the routing, and the traces.',
+    'footer.heading.site': 'Site',
+    'footer.heading.elsewhere': 'Elsewhere',
+    'footer.nav.aria': 'Footer navigation',
+    'footer.elsewhere.aria': 'Profiles and feeds',
+    'footer.colophon': 'Astro · Tailwind · Cloudflare Pages',
+    'footer.resume': 'Résumé',
+
+    'toc.title': 'On this page',
+
+    'post.prev': 'Previous',
+    'post.next': 'Next',
+    'post.related': 'Related reading',
+    'post.share': 'Share',
+    'post.copyLink': 'Copy link',
+    'post.copied': 'Copied',
+
+    'search.title': 'Search',
+    'search.kicker': 'Everything on this site',
+    'search.intro':
+      'Full-text search across every essay and case study. The index is built at deploy time and runs in your browser, so nothing you type here leaves the page.',
+    'search.placeholder': 'Search essays and work…',
+    'search.noJs':
+      'Search needs JavaScript. Without it, the writing and work indexes are both browsable by hand.',
+
+
+    'home.now.heading': 'Now',
+    'home.now.body':
+      'At TitanCloud I’m building a four-layer gatekeeper that cleans, filters, and routes documents before they reach a three-agent pipeline on Amazon Bedrock.',
+    'home.stat.role': 'AI Engineer, TitanCloud',
+    'home.stat.education': 'MS Data Science, Gannon University',
+    'home.stat.publication': 'Paper at NAMRC / MSEC 2025',
+    'home.stat.location': 'Erie, Pennsylvania',
+
+    'error.notFound': 'Not found',
   },
 
   ne: {
@@ -120,12 +160,12 @@ export const ui: Record<Lang, Dict> = {
     'nav.skipToContent': 'सामग्रीमा जानुहोस्',
 
     'home.kicker': 'एआई इन्जिनियर · TitanCloud',
-    'home.title.before': 'वास्तवै ',
-    'home.title.italic': 'चल्ने',
-    'home.title.after': ' उत्पादनस्तरको एमएल प्रणाली बनाउँदै।',
+    'home.title.before': 'एमएल प्रणालीको अधिकांश भाग ',
+    'home.title.italic': 'मोडेल होइन',
+    'home.title.after': '।',
     'home.dek':
       'एलएलएम पाइपलाइनको अधिकांश काम मोडेलभन्दा माथिल्लो तहमा हुन्छ। म ती तहहरूका बारेमा लेख्छु जसले एउटै टोकन खर्च हुनुअघि फिल्टर, राउट र भ्यालिडेट गर्छन् — र म तिनै तहहरू बनाउने काम गर्छु।',
-    'home.cta.writing': 'चुनिएका लेखहरू पढ्नुहोस् →',
+    'home.cta.writing': 'लेखहरू पढ्नुहोस् →',
     'home.cta.work': 'काम हेर्नुहोस्',
     'home.cta.about': 'परिचय',
 
@@ -156,7 +196,7 @@ export const ui: Record<Lang, Dict> = {
     'meta.stack': 'स्ट्याक',
 
     'home.about.body.1':
-      'म TitanCloud मा एआई इन्जिनियर हुँ। मेरो Gannon विश्वविद्यालयबाट एमएस डेटा साइन्स डिसेम्बर २०२५ मा ४.० जीपीएसहित पूरा भएको छ।',
+      'म TitanCloud मा एआई इन्जिनियर हुँ। Gannon विश्वविद्यालयबाट एमएस डेटा साइन्स डिसेम्बर २०२५ मा पूरा गरें।',
     'home.about.body.2':
       'TitanCloud अघि मैले BitsKraft मा अन-डिभाइस कम्प्युटर भिजन मोडेलहरू सिप गरें, र सात जना प्राध्यापकहरूको अनुसन्धान समूहको साझा एमएल पूर्वाधार सम्हालें। मोडेलभन्दा प्रणालीका “निरस” तहहरू मलाई बढी मनपर्छन् — किनभने वास्तविक प्रणाली बिग्रिँदा प्रायः मोडेल बिग्रेको हुँदैन।',
 
@@ -167,7 +207,7 @@ export const ui: Record<Lang, Dict> = {
       'मलाई सम्पर्क गर्ने सजिलो तरिका इमेल हो। म सबै पढ्छु, र अधिकांश सन्देशको जवाफ एक-दुई दिनभित्र दिन्छु।',
 
     'writing.title': 'लेखहरू',
-    'writing.kicker': 'लेखहरू · हरेक महिना अपडेट हुने',
+    'writing.kicker': 'लेखहरू',
     'writing.intro':
       'उत्पादनस्तरको एमएल बनाउने बारेमा — एलएलएमभन्दा अघिका चार तहहरू, मोडेलभन्दा माथिको राउटिङ निर्णयहरू, र तीन-एजेन्ट IDP पाइपलाइनबाटका प्रत्यक्ष अनुभवहरू।',
     'writing.subscribe.before': 'सब्सक्राइब गर्नुहोस् ',
@@ -209,5 +249,45 @@ export const ui: Record<Lang, Dict> = {
 
     'lang.switch.label': 'Read in English',
     'lang.switch.aria': 'भाषा अङ्ग्रेजीमा परिवर्तन गर्नुहोस्',
+
+    'nav.search': 'खोज',
+    'nav.menu': 'मेनु',
+
+    'footer.blurb':
+      'उत्पादनस्तरका एमएल प्रणाली बनाउने बारेमा टिपोटहरू — प्रि-फिल्टर, राउटिङ, र ट्रेसहरू।',
+    'footer.heading.site': 'साइट',
+    'footer.heading.elsewhere': 'अन्यत्र',
+    'footer.nav.aria': 'फुटर नेभिगेसन',
+    'footer.elsewhere.aria': 'प्रोफाइल र फिडहरू',
+    'footer.colophon': 'Astro · Tailwind · Cloudflare Pages',
+    'footer.resume': 'बायोडाटा',
+
+    'toc.title': 'यस पृष्ठमा',
+
+    'post.prev': 'अघिल्लो',
+    'post.next': 'अर्को',
+    'post.related': 'सम्बन्धित लेखहरू',
+    'post.share': 'सेयर',
+    'post.copyLink': 'लिङ्क कपी गर्नुहोस्',
+    'post.copied': 'कपी भयो',
+
+    'search.title': 'खोज',
+    'search.kicker': 'साइटभरि',
+    'search.intro':
+      'हरेक लेख र केस स्टडीमा पूर्ण-पाठ खोज। इन्डेक्स डिप्लोयका बेला बन्छ र पूरै तपाईंको ब्राउजरमै चल्छ — तपाईंले टाइप गरेको कुनै कुरा यो पृष्ठबाहिर जाँदैन।',
+    'search.placeholder': 'लेख र काम खोज्नुहोस्…',
+    'search.noJs':
+      'खोजका लागि जाभास्क्रिप्ट चाहिन्छ। त्यसविना पनि लेख र कामका सूचीहरू हातैले हेर्न सकिन्छ।',
+
+
+    'home.now.heading': 'अहिले',
+    'home.now.body':
+      'TitanCloud मा म चार-तहको गेटकिपर बनाउँदैछु — जसले कागजातहरू Amazon Bedrock को तीन-एजेन्ट पाइपलाइनसम्म पुग्नुअघि सफा, फिल्टर र राउट गर्छ।',
+    'home.stat.role': 'एआई इन्जिनियर, TitanCloud',
+    'home.stat.education': 'एमएस डेटा साइन्स, Gannon विश्वविद्यालय',
+    'home.stat.publication': 'NAMRC / MSEC २०२५ मा पेपर',
+    'home.stat.location': 'इरी, पेन्सिलभेनिया',
+
+    'error.notFound': 'भेटिएन',
   },
 };

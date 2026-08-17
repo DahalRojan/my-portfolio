@@ -1,8 +1,10 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import { getLangFromUrl, useTranslations, altLangPath } from '../i18n/utils';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+import { altLangHref } from '../lib/alt-lang';
 
 interface Props {
   title: string;
@@ -10,7 +12,10 @@ interface Props {
   ogImage?: string;
   ogType?: 'website' | 'article';
   publishedTime?: string;
+  modifiedTime?: string;
   noindex?: boolean;
+  /** Renders the fixed reading-progress hairline. Post pages only. */
+  progress?: boolean;
 }
 
 const lang = getLangFromUrl(Astro.url);
@@ -19,27 +24,83 @@ const t = useTranslations(lang);
 const {
   title,
   description = t('site.tagline'),
-  ogImage = '/og.svg',
+  ogImage,
   ogType = 'website',
   publishedTime,
+  modifiedTime,
   noindex = false,
+  progress = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
-const altUrl = new URL(altLangPath(Astro.url, lang), Astro.site).toString();
-const ogImageUrl = new URL(ogImage, Astro.site).toString();
+const altUrl = new URL(await altLangHref(Astro.url.pathname, lang), Astro.site).toString();
+const ogImageUrl = new URL(ogImage ?? '/og/default.png', Astro.site).toString();
 
-const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/ne/' || Astro.url.pathname === '/ne';
+const isHome =
+  Astro.url.pathname === '/' ||
+  Astro.url.pathname === '/ne/' ||
+  Astro.url.pathname === '/ne';
 const fullTitle = isHome ? title : `${title} — Rojan Dahal`;
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Rojan Dahal',
+  url: 'https://rojandahal.com',
+  jobTitle: 'AI Engineer',
+  email: 'mailto:rojandahal1026@gmail.com',
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Gannon University' },
+  sameAs: [
+    'https://www.linkedin.com/in/rojandahal/',
+    'https://github.com/DahalRojan',
+  ],
+};
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#faf7f2" />
+    <meta name="color-scheme" content="light dark" />
+
+    {/* Runs before first paint so the correct palette is already on the
+        element when the body renders — no flash of the wrong theme. */}
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        root.classList.remove('no-js');
+        try {
+          var saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') {
+            root.setAttribute('data-theme', saved);
+          }
+        } catch (e) {
+          /* private mode — fall through to the system preference */
+        }
+        // Marks browsers that can run the reading-progress bar on the
+        // compositor via scroll(). Everything else falls back to a
+        // throttled scroll listener.
+        if (
+          window.CSS &&
+          CSS.supports('animation-timeline: view()') &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
+          root.classList.add('sda');
+        }
+
+        // Failsafe. Removing `no-js` above hides every [data-reveal]
+        // element until the main script reveals it — so if that script
+        // never arrives (chunk 404, blocked origin, parse error), the
+        // page would be permanently blank. Put `no-js` back if nothing
+        // has claimed the reveal system shortly after load.
+        setTimeout(function () {
+          if (!root.hasAttribute('data-reveal-ready')) {
+            root.classList.add('no-js');
+          }
+        }, 2500);
+      })();
+    </script>
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -57,16 +118,21 @@ const fullTitle = isHome ? title : `${title} — Rojan Dahal`;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:locale" content={lang === 'ne' ? 'ne_NP' : 'en_US'} />
     {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
 
+    {/* SVG favicon covers every current desktop and Android browser;
+        the PNG is rasterised at build time for iOS, which has no SVG
+        touch-icon support. No .ico — nothing in support still needs it. */}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <link
@@ -75,20 +141,86 @@ const fullTitle = isHome ? title : `${title} — Rojan Dahal`;
       title={lang === 'ne' ? 'Rojan Dahal — लेखहरू' : 'Rojan Dahal — Writing'}
       href={lang === 'ne' ? '/ne/rss.xml' : '/rss.xml'}
     />
-
     <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+
+    {/* Page-specific head content — per-type JSON-LD, mostly. */}
+    <slot name="head" />
+
+    <ClientRouter />
   </head>
+
   <body class="flex min-h-dvh flex-col">
+    <a class="skip-link" href="#main">{t('nav.skipToContent')}</a>
+
+    {progress && <div class="read-progress" aria-hidden="true"></div>}
+
     <Nav />
-    <main class="flex-1">
+
+    <main id="main" class="flex-1">
       <slot />
     </main>
+
     <Footer />
 
     <script>
-      // Reveal-on-scroll: toggles .is-visible on [data-reveal] when they enter the viewport.
-      const reveal = () => {
+      // ── Theme ────────────────────────────────────────────────
+      // The inline head script sets the initial theme. This handles
+      // the toggle and re-applies after a view transition, since
+      // Astro swaps documentElement and the attribute goes with it.
+      const applyStoredTheme = () => {
+        try {
+          const saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', saved);
+          } else {
+            document.documentElement.removeAttribute('data-theme');
+          }
+        } catch {
+          /* ignore */
+        }
+      };
+
+      const systemPrefersDark = () =>
+        matchMedia('(prefers-color-scheme: dark)').matches;
+
+      const currentTheme = (): 'light' | 'dark' => {
+        const attr = document.documentElement.getAttribute('data-theme');
+        if (attr === 'light' || attr === 'dark') return attr;
+        return systemPrefersDark() ? 'dark' : 'light';
+      };
+
+      const syncToggleLabel = () => {
+        const next = currentTheme() === 'dark' ? 'light' : 'dark';
+        document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((el) => {
+          el.setAttribute('aria-label', `Switch to ${next} theme`);
+          el.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+        });
+      };
+
+      const toggleTheme = () => {
+        const next = currentTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch {
+          /* ignore */
+        }
+        syncToggleLabel();
+      };
+
+      // ── Reveal on scroll ─────────────────────────────────────
+      // One-way: an element that has been revealed stays revealed.
+      // Deliberately not a scroll-driven CSS animation — see the note
+      // beside [data-reveal] in global.css.
+      const initReveal = () => {
         const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+
+        // Tells the head-script failsafe that this system is alive.
+        document.documentElement.setAttribute('data-reveal-ready', '');
+        document.documentElement.classList.remove('no-js');
+
         if (
           !('IntersectionObserver' in window) ||
           matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -96,22 +228,110 @@ const fullTitle = isHome ? title : `${title} — Rojan Dahal`;
           els.forEach((el) => el.classList.add('is-visible'));
           return;
         }
+
         const io = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                io.unobserve(entry.target);
-              }
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
             });
           },
           { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
         );
+
+        // Stagger siblings inside a shared container so a list of cards
+        // arrives in sequence rather than all at once.
+        document.querySelectorAll<HTMLElement>('[data-reveal-group]').forEach((group) => {
+          group
+            .querySelectorAll<HTMLElement>('[data-reveal]')
+            .forEach((el, i) => el.style.setProperty('--reveal-index', String(Math.min(i, 6))));
+        });
+
         els.forEach((el) => io.observe(el));
       };
 
-      if (document.readyState !== 'loading') reveal();
-      else document.addEventListener('DOMContentLoaded', reveal);
+      // ── Reading progress (fallback) ──────────────────────────
+      let onProgressScroll: (() => void) | null = null;
+
+      const initProgress = () => {
+        if (onProgressScroll) {
+          removeEventListener('scroll', onProgressScroll);
+          onProgressScroll = null;
+        }
+        const bar = document.querySelector<HTMLElement>('.read-progress');
+        if (!bar || document.documentElement.classList.contains('sda')) return;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        let ticking = false;
+        const update = () => {
+          const max = document.documentElement.scrollHeight - innerHeight;
+          const ratio = max > 0 ? scrollY / max : 0;
+          bar.style.setProperty('--progress', String(Math.min(1, Math.max(0, ratio))));
+          ticking = false;
+        };
+        onProgressScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(update);
+        };
+        addEventListener('scroll', onProgressScroll, { passive: true });
+        update();
+      };
+
+      // ── Active table-of-contents entry ───────────────────────
+      let tocObserver: IntersectionObserver | null = null;
+
+      const initToc = () => {
+        tocObserver?.disconnect();
+        const toc = document.querySelector('[data-toc]');
+        if (!toc) return;
+
+        const links = Array.from(toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'));
+        if (!links.length) return;
+
+        const byId = new Map(links.map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+        const headings = Array.from(byId.keys())
+          .map((id) => document.getElementById(id))
+          .filter((el): el is HTMLElement => el !== null);
+
+        const setActive = (id: string) => {
+          links.forEach((a) =>
+            a.toggleAttribute('data-active', decodeURIComponent(a.hash.slice(1)) === id)
+          );
+        };
+
+        tocObserver = new IntersectionObserver(
+          (entries) => {
+            // Pick the entry closest to the top of the reading area.
+            const visible = entries
+              .filter((e) => e.isIntersecting)
+              .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            if (visible[0]) setActive(visible[0].target.id);
+          },
+          { rootMargin: '-10% 0px -70% 0px', threshold: 0 }
+        );
+        headings.forEach((h) => tocObserver!.observe(h));
+      };
+
+      // ── Wiring ───────────────────────────────────────────────
+      const onPageLoad = () => {
+        applyStoredTheme();
+        syncToggleLabel();
+        initReveal();
+        initProgress();
+        initToc();
+      };
+
+      // Delegated so it survives every page swap without rebinding.
+      addEventListener('click', (e) => {
+        const target = (e.target as HTMLElement | null)?.closest('[data-theme-toggle]');
+        if (target) toggleTheme();
+      });
+
+      // Re-apply before the new document paints, not after.
+      document.addEventListener('astro:after-swap', applyStoredTheme);
+      document.addEventListener('astro:page-load', onPageLoad);
     </script>
   </body>
 </html>

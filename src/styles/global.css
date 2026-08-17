@@ -14,38 +14,142 @@
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
 
-/* Devanagari (Nepali / Hindi) — browser lazy-loads via unicode-range,
+/* Devanagari (Nepali) — browser lazy-loads via unicode-range,
    so English-only pages don't download these files. */
 @import "@fontsource/noto-serif-devanagari/400.css";
 @import "@fontsource/noto-serif-devanagari/600.css";
 @import "@fontsource/ibm-plex-sans-devanagari/400.css";
 @import "@fontsource/ibm-plex-sans-devanagari/500.css";
 
+/* ============================================================
+   TOKENS
+   Two palettes — warm paper by day, warm graphite by night.
+   The accent stays rust in both; it is the one constant.
+   ============================================================ */
+
 @theme {
   --font-display: "Instrument Serif", "Noto Serif Devanagari", "Times New Roman", Georgia, serif;
   --font-sans: "IBM Plex Sans", "IBM Plex Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Menlo", monospace;
 
-  /* Editorial palette: warm cream paper, ink, single rust accent */
-  --color-paper: #faf7f2;
-  --color-paper-tint: #f4efe6;
-  --color-ink: #1a1a1a;
-  --color-ink-soft: #4a4845;
-  --color-ink-faint: #8a8782;
-  --color-ink-ghost: #c8c4bd;
-  --color-rust: #b54a2a;
-  --color-rust-soft: #c46a4e;
-  --color-rule: rgba(26, 26, 26, 0.12);
-  --color-rule-strong: rgba(26, 26, 26, 0.22);
-
   --measure: 68ch;
   --measure-wide: 80ch;
   --content-max: 1180px;
+
+  /* Motion. Durations stay inside the 150–500ms band where UI motion
+     reads as responsive rather than decorative; the long ones are
+     reserved for entrances that travel a real distance. */
+  --dur-1: 140ms;   /* state flips: color, opacity */
+  --dur-2: 240ms;   /* the default — hovers, small moves */
+  --dur-3: 420ms;   /* panels, menus */
+  --dur-4: 700ms;   /* entrances */
+
+  /* Easings. `out` for things arriving (fast in, gentle settle),
+     `in-out` for things moving between two places on screen. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --stagger: 70ms;
 }
 
-@layer base {
-  :root { color-scheme: light; }
+/* One accent, three warm greys, and a lot of restraint. Emphasis comes
+   from type, spacing and hairlines rather than from colour — the accent
+   is reserved for links and the few marks that must be found fast. */
 
+:root {
+  color-scheme: light;
+
+  --color-paper: #fcfaf7;
+  --color-paper-raised: #f5f1ea;
+  --color-paper-sunk: #efe9df;
+
+  --color-ink: #14120e;
+  --color-ink-soft: #4a463d;
+  --color-ink-faint: #837c6f;
+  --color-ink-ghost: #cbc4b7;
+
+  --color-accent: #a8442a;
+  --color-accent-soft: #bf6448;
+
+  --color-rule: rgba(20, 18, 14, 0.1);
+  --color-rule-strong: rgba(20, 18, 14, 0.2);
+  --color-selection-bg: var(--color-accent);
+  --color-selection-fg: #fcfaf7;
+
+  --shadow-lift: 0 1px 2px rgba(20, 18, 14, 0.03), 0 14px 34px -16px rgba(20, 18, 14, 0.14);
+}
+
+/* Dark palette. Warm graphite rather than blue-black, so the paper
+   metaphor survives the switch. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-paper: #131210;
+    --color-paper-raised: #1c1a17;
+    --color-paper-sunk: #0d0c0a;
+
+    --color-ink: #f3efe8;
+    --color-ink-soft: #b5afa3;
+    --color-ink-faint: #837c70;
+    --color-ink-ghost: #494439;
+
+    --color-accent: #e08a63;
+    --color-accent-soft: #eda684;
+
+    --color-rule: rgba(243, 239, 232, 0.12);
+    --color-rule-strong: rgba(243, 239, 232, 0.24);
+    --color-selection-bg: var(--color-accent);
+    --color-selection-fg: #131210;
+
+    --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-paper: #131210;
+  --color-paper-raised: #1c1a17;
+  --color-paper-sunk: #0d0c0a;
+
+  --color-ink: #f3efe8;
+  --color-ink-soft: #b5afa3;
+  --color-ink-faint: #837c70;
+  --color-ink-ghost: #494439;
+
+  --color-accent: #e08a63;
+  --color-accent-soft: #eda684;
+
+  --color-rule: rgba(243, 239, 232, 0.12);
+  --color-rule-strong: rgba(243, 239, 232, 0.24);
+  --color-selection-bg: var(--color-accent);
+  --color-selection-fg: #131210;
+
+  --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.7);
+}
+
+/* Make the tokens available to Tailwind's `text-ink` / `bg-paper` utilities. */
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-paper-raised: var(--color-paper-raised);
+  --color-paper-sunk: var(--color-paper-sunk);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-ink-ghost: var(--color-ink-ghost);
+  --color-accent: var(--color-accent);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-rule: var(--color-rule);
+  --color-rule-strong: var(--color-rule-strong);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+@layer base {
   html {
     background: var(--color-paper);
     color: var(--color-ink);
@@ -54,6 +158,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    /* Anchor links land below the sticky header instead of under it. */
+    scroll-padding-top: 6rem;
   }
 
   body {
@@ -61,20 +168,27 @@
     line-height: 1.55;
     background: var(--color-paper);
     font-size: 17px;
+    /* Theme flips shouldn't strobe. Kept off the `*` selector so it
+       doesn't fight every other transition on the page. */
+    transition: background-color var(--dur-2) var(--ease-out),
+                color var(--dur-2) var(--ease-out);
   }
 
   ::selection {
-    background: var(--color-rust);
-    color: var(--color-paper);
+    background: var(--color-selection-bg);
+    color: var(--color-selection-fg);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-rust);
+    outline: 2px solid var(--color-accent);
     outline-offset: 3px;
     border-radius: 2px;
   }
 
   a { color: inherit; text-decoration: none; }
+
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
 
   hr {
     border: 0;
@@ -82,16 +196,8 @@
     margin: 3rem 0;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Nepali: prefer Devanagari serif for display; loosen line-height for tall conjuncts. */
+  /* Nepali: prefer Devanagari serif for display; loosen line-height
+     for the taller conjunct stacks. */
   html[lang="ne"] {
     --font-display: "Noto Serif Devanagari", "Instrument Serif", Georgia, serif;
     --font-sans: "IBM Plex Sans Devanagari", "IBM Plex Sans", system-ui, sans-serif;
@@ -102,6 +208,10 @@
   html[lang="ne"] .prose { line-height: 1.85; }
   html[lang="ne"] .prose h2 { line-height: 1.28; }
 }
+
+/* ============================================================
+   TYPE + LAYOUT PRIMITIVES
+   ============================================================ */
 
 @layer components {
   .display {
@@ -123,58 +233,67 @@
     font-size: 0.92em;
   }
 
-  /* Page-level horizontal container */
   .container-x {
     max-width: var(--content-max);
     margin-inline: auto;
     padding-inline: clamp(20px, 5vw, 56px);
   }
 
-  /* Single-column reading width — for post bodies and most home sections */
-  .measure {
-    max-width: var(--measure);
+  .measure { max-width: var(--measure); }
+  .measure-wide { max-width: var(--measure-wide); }
+
+  /* The kicker: small mono label above a heading. Used everywhere,
+     so it earns a class instead of six utility strings. */
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-accent);
   }
-  .measure-wide {
-    max-width: var(--measure-wide);
+  .kicker-muted { color: var(--color-ink-faint); }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--color-ink-faint);
   }
 
-  /* Animated underline for navigational + body links */
+  /* Underline that retracts on hover — the line is already there,
+     so nothing shifts when you point at it. */
   .link-rule {
     background-image: linear-gradient(currentColor, currentColor);
     background-position: 0 100%;
     background-repeat: no-repeat;
     background-size: 100% 1px;
-    transition: background-size 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 180ms;
+    transition: background-size var(--dur-2) var(--ease-out), color var(--dur-1);
     padding-bottom: 1px;
   }
   .link-rule:hover,
-  .link-rule:focus-visible {
-    background-size: 0% 1px;
-  }
+  .link-rule:focus-visible { background-size: 0% 1px; }
 
+  /* Underline that draws in from the left on hover. */
   .link-grow {
     background-image: linear-gradient(currentColor, currentColor);
     background-position: 0 100%;
     background-repeat: no-repeat;
     background-size: 0% 1px;
-    transition: background-size 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: background-size var(--dur-2) var(--ease-out), color var(--dur-1);
     padding-bottom: 1px;
   }
   .link-grow:hover,
-  .link-grow:focus-visible {
-    background-size: 100% 1px;
-  }
+  .link-grow:focus-visible { background-size: 100% 1px; }
 
   .tabnums {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
   }
 
-  /* Editorial divider with optional centered tick */
   .rule-soft { border-top: 1px solid var(--color-rule); }
   .rule-strong { border-top: 1px solid var(--color-rule-strong); }
 
-  /* Pull-quote / dek styling */
   .dek {
     font-family: var(--font-display);
     font-style: italic;
@@ -182,12 +301,170 @@
     line-height: 1.4;
     color: var(--color-ink-soft);
   }
+
+  /* A hue-free surface used for the "Now" panel: raised paper, one
+     hairline, one quiet accent rail. */
+  .panel {
+    position: relative;
+    border: 1px solid var(--color-rule);
+    border-radius: 10px;
+    background: var(--color-paper-raised);
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 2px;
+    background: var(--color-accent);
+  }
+
+  /* A single, barely-perceptible warm lift behind the opening screen.
+     It reads as paper stock rather than as a gradient — if you can name
+     the colour, it is too strong. */
+  .hero-wash {
+    position: relative;
+    isolation: isolate;
+  }
+  .hero-wash::before {
+    content: '';
+    position: absolute;
+    inset-block-start: -20vh;
+    inset-inline: -25vw;
+    block-size: 120%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      46rem 32rem at 22% 0%,
+      var(--color-paper-raised),
+      transparent 72%
+    );
+  }
+
+  /* Skip link — visible only once focused. */
+  .skip-link {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    translate: -50% -120%;
+    z-index: 100;
+    padding: 0.7em 1.4em;
+    background: var(--color-accent);
+    color: var(--color-selection-fg);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    border-radius: 0 0 6px 6px;
+    transition: translate var(--dur-2) var(--ease-out);
+  }
+  .skip-link:focus-visible { translate: -50% 0; }
 }
 
 /* ============================================================
-   Prose — for MDX-rendered post bodies.
-   Applied via the .prose class on a wrapper.
+   MOTION
+   Two layers: CSS scroll-driven animations where the browser
+   supports them (compositor-thread, no JS), and an
+   IntersectionObserver fallback that sets .is-visible.
+   Both drive the exact same keyframes.
    ============================================================ */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Reveal-on-scroll is driven by IntersectionObserver, not by a scroll
+   timeline. A scroll timeline is cheaper, but it ties visibility to
+   scroll progress — on a short page, or a tall viewport where an
+   element never crosses its range, the content would stay at opacity 0
+   with no way to reach it. Content must never depend on scrolling to
+   become visible, so the observer (one-way, fires once) wins here.
+   `.no-js` and the reduced-motion block below are the other two exits. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity var(--dur-4) var(--ease-out),
+              transform var(--dur-4) var(--ease-out);
+  transition-delay: calc(var(--reveal-index, 0) * var(--stagger));
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+.no-js [data-reveal] { opacity: 1; transform: none; }
+
+/* Hero content animates on load rather than on scroll — it's already
+   in view, so there is nothing to wait for. */
+[data-enter] {
+  animation: rise var(--dur-4) var(--ease-out) both;
+  animation-delay: calc(var(--enter-index, 0) * var(--stagger));
+}
+
+/* Reading progress: a hairline that fills as the article scrolls past.
+   Pure CSS where supported — the JS fallback sets --progress. */
+.read-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
+  z-index: 60;
+  background: var(--color-accent);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--progress, 0));
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  html.sda .read-progress {
+    animation: progress-grow linear both;
+    animation-timeline: scroll(root block);
+    transform: scaleX(0);
+  }
+}
+@keyframes progress-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Respect the user's setting. This is the one place a blanket
+   override is correct: it must beat every animation above. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal],
+  html.sda [data-reveal] { opacity: 1 !important; transform: none !important; animation: none !important; }
+  [data-enter] { animation: none !important; }
+}
+
+/* View Transitions: cross-fade the page body, hold the shell still. */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: fade var(--dur-2) var(--ease-out) reverse both;
+}
+::view-transition-new(root) {
+  animation: fade var(--dur-3) var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
+/* ============================================================
+   PROSE — MDX-rendered post bodies
+   ============================================================ */
+
 .prose {
   font-size: 18px;
   line-height: 1.72;
@@ -195,11 +472,8 @@
   max-width: var(--measure);
 }
 
-.prose > * + * { margin-top: 1.2em; }
-
-.prose p {
-  margin-block: 0;
-}
+.prose > * + * { margin-top: 1.5em; }
+.prose p { margin-block: 0; }
 
 .prose h2 {
   font-family: var(--font-display);
@@ -210,31 +484,47 @@
   margin-top: 2.6em;
   margin-bottom: 0.6em;
   color: var(--color-ink);
+  scroll-margin-top: 6rem;
 }
 
 .prose h3 {
   font-family: var(--font-sans);
   font-weight: 600;
   font-size: 1.1rem;
-  letter-spacing: 0;
   margin-top: 2em;
   margin-bottom: 0.5em;
   color: var(--color-ink);
+  scroll-margin-top: 6rem;
 }
 
 .prose h2 + p,
-.prose h3 + p {
-  margin-top: 0.4em;
+.prose h3 + p { margin-top: 0.4em; }
+
+/* Heading anchor — appears in the margin on hover, never reflows text. */
+.prose :is(h2, h3) > .heading-anchor {
+  position: absolute;
+  margin-left: -1.1em;
+  width: 1.1em;
+  color: var(--color-ink-ghost);
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-out), color var(--dur-1);
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  line-height: inherit;
 }
+.prose :is(h2, h3) { position: relative; }
+.prose :is(h2, h3):hover > .heading-anchor,
+.prose .heading-anchor:focus-visible { opacity: 1; }
+.prose .heading-anchor:hover { color: var(--color-accent); }
 
 .prose a {
-  color: var(--color-rust);
-  background-image: linear-gradient(var(--color-rust), var(--color-rust));
+  color: var(--color-accent);
+  background-image: linear-gradient(var(--color-accent), var(--color-accent));
   background-position: 0 100%;
   background-repeat: no-repeat;
   background-size: 100% 1px;
   padding-bottom: 1px;
-  transition: background-size 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-size var(--dur-2) var(--ease-out);
 }
 .prose a:hover { background-size: 0% 1px; }
 
@@ -244,7 +534,7 @@
 .prose blockquote {
   margin: 1.8em 0;
   padding-left: 1.4em;
-  border-left: 2px solid var(--color-rust);
+  border-left: 2px solid var(--color-accent);
   font-family: var(--font-display);
   font-style: italic;
   font-size: 1.25em;
@@ -252,11 +542,7 @@
   color: var(--color-ink-soft);
 }
 
-.prose ul,
-.prose ol {
-  padding-left: 1.4em;
-  margin-block: 1em;
-}
+.prose ul, .prose ol { padding-left: 1.4em; margin-block: 1em; }
 .prose ul { list-style: disc; }
 .prose ol { list-style: decimal; }
 .prose li { margin-block: 0.4em; }
@@ -265,7 +551,7 @@
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: var(--color-paper-tint);
+  background: var(--color-paper-raised);
   padding: 0.15em 0.4em;
   border-radius: 3px;
   color: var(--color-ink);
@@ -275,19 +561,29 @@
   font-family: var(--font-mono);
   font-size: 0.86em;
   line-height: 1.65;
-  background: var(--color-paper-tint);
+  background: var(--color-paper-raised);
   border: 1px solid var(--color-rule);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 1.1em 1.3em;
   overflow-x: auto;
   margin-block: 1.6em;
 }
-
 .prose pre code {
   background: transparent;
   padding: 0;
   border-radius: 0;
   font-size: 1em;
+}
+
+/* Shiki emits both a light and a dark palette as CSS variables;
+   swap which one is read instead of re-highlighting at runtime. */
+:root[data-theme="dark"] .prose :is(pre, code) span {
+  color: var(--shiki-dark, inherit) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .prose :is(pre, code) span {
+    color: var(--shiki-dark, inherit) !important;
+  }
 }
 
 .prose hr {
@@ -300,7 +596,7 @@
 .prose img {
   margin-block: 2em;
   border: 1px solid var(--color-rule);
-  border-radius: 2px;
+  border-radius: 4px;
   max-width: 100%;
 }
 
@@ -318,8 +614,7 @@
   font-size: 0.94em;
   margin-block: 1.6em;
 }
-.prose th,
-.prose td {
+.prose th, .prose td {
   padding: 0.6em 0.9em;
   border-bottom: 1px solid var(--color-rule);
   text-align: left;
@@ -333,26 +628,14 @@
   color: var(--color-ink-soft);
 }
 
-/* Editorial drop cap on first paragraph (opt-in via .has-drop-cap on prose) */
+/* Wide content scrolls inside its own box; the page never does. */
+.prose :is(pre, table) { max-width: 100%; }
+
 .prose.has-drop-cap > p:first-of-type::first-letter {
   font-family: var(--font-display);
   font-size: 4.2em;
   line-height: 0.85;
   float: left;
   padding: 0.08em 0.12em 0 0;
-  color: var(--color-rust);
-}
-
-/* Reveal-on-scroll utility — IntersectionObserver toggles .is-visible */
-[data-reveal] {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 600ms ease, transform 600ms ease;
-}
-[data-reveal].is-visible {
-  opacity: 1;
-  transform: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal] { opacity: 1; transform: none; }
+  color: var(--color-accent);
 }

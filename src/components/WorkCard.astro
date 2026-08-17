@@ -15,20 +15,18 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<a
-  href={href}
-  class="group block border-t border-[var(--color-rule)] py-7"
-  data-reveal
->
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-10">
-    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36">
+<article class="work-card border-t border-[var(--color-rule)]" data-reveal>
+  <div class="relative flex flex-col gap-3 py-7 sm:flex-row sm:gap-10">
+    <div
+      class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36"
+    >
       {period}
     </div>
 
     <div class="flex-1">
       <div class="flex flex-wrap items-baseline gap-x-3">
-        <h3 class="display text-[clamp(1.4rem,1.5vw+0.8rem,1.85rem)] leading-tight transition-colors group-hover:text-[var(--color-rust)]">
-          {title}
+        <h3 class="display text-[clamp(1.4rem,1.5vw+0.8rem,1.85rem)] leading-tight transition-colors">
+          <a href={href} class="work-card__link">{title}</a>
         </h3>
         <span class="mono text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)]">
           &middot; {role}
@@ -50,8 +48,40 @@ const t = useTranslations(lang);
       }
     </div>
 
-    <span class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline">
-      {t('cta.caseStudy')}
+    <span
+      class="mono hidden shrink-0 self-start text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:block"
+      aria-hidden="true"
+    >
+      <span class="work-card__arrow inline-block">{t('cta.caseStudy')}</span>
     </span>
   </div>
-</a>
+</article>
+
+<style>
+  .work-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .work-card:hover h3,
+  .work-card:focus-within h3 {
+    color: var(--color-accent);
+  }
+
+  .work-card__arrow {
+    transition:
+      translate var(--dur-2) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  .work-card:hover .work-card__arrow,
+  .work-card:focus-within .work-card__arrow {
+    color: var(--color-accent);
+    translate: 4px 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-card:hover .work-card__arrow { translate: none; }
+  }
+</style>

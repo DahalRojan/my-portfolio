@@ -12,22 +12,27 @@ const { title, description, kicker, intro } = Astro.props;
 ---
 
 <Base title={title} description={description}>
-  <section class="container-x py-16 sm:py-24">
-    <header class="measure-wide" data-reveal>
+  <section class="hero-wash container-x py-14 sm:py-20">
+    <header class="measure-wide">
+      {kicker && <p class="kicker" data-enter style="--enter-index: 0">{kicker}</p>}
+      <h1
+        class="display mt-4 text-[clamp(2.2rem,4vw+1rem,3.6rem)]"
+        data-enter
+        style="--enter-index: 1"
+      >
+        {title}
+      </h1>
       {
-        kicker && (
-          <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
-            {kicker}
+        intro && (
+          <p class="dek measure mt-5" data-enter style="--enter-index: 2">
+            {intro}
           </p>
         )
       }
-      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
-        {title}
-      </h1>
-      {intro && <p class="dek mt-5 measure">{intro}</p>}
+      <slot name="header-extra" />
     </header>
 
-    <div class="mt-16">
+    <div class="mt-14">
       <slot />
     </div>
   </section>

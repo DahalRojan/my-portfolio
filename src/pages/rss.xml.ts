@@ -1,11 +1,13 @@
 import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
+import { entrySlug, filterByLang } from '../lib/content';
 
 export async function GET(context: APIContext) {
-  const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.date.getTime() - a.data.date.getTime()
-  );
+  const posts = filterByLang(
+    await getCollection('writing', ({ data }) => !data.draft),
+    'en'
+  ).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
   return rss({
     title: 'Rojan Dahal — Writing',
@@ -16,7 +18,10 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       description: post.data.dek,
       pubDate: post.data.date,
-      link: `/writing/${post.id}/`,
+      categories: post.data.tags,
+      // entrySlug strips the `en/` locale prefix from the collection id.
+      // Using post.id directly here produced /writing/en/<slug>/.
+      link: `/writing/${entrySlug(post)}/`,
     })),
     customData: '<language>en-us</language>',
     stylesheet: '/rss/styles.xsl',

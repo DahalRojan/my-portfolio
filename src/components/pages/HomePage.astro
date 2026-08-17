@@ -1,0 +1,246 @@
+---
+import Base from '../../layouts/Base.astro';
+import EssayCard from '../EssayCard.astro';
+import WorkCard from '../WorkCard.astro';
+import SectionHeader from '../SectionHeader.astro';
+import { getCollection } from 'astro:content';
+import { minutesOf } from '../../lib/reading';
+import { entrySlug, filterByLang, bySlug } from '../../lib/content';
+import { useTranslations, localePath, type Lang } from '../../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  title: string;
+}
+
+const { lang, title } = Astro.props;
+const t = useTranslations(lang);
+
+/* Content strategy for Nepali: the English catalogue is the source of
+   truth for *which* pieces are featured; a Nepali translation is
+   substituted whenever one exists, and the English piece is linked
+   otherwise. That way the front page never goes stale waiting on a
+   translation. */
+const allWriting = await getCollection('writing', ({ data }) => !data.draft);
+const enWriting = filterByLang(allWriting, 'en').sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const localised = bySlug(filterByLang(allWriting, lang));
+
+const featured = enWriting.filter((p) => p.data.featured);
+const recentWriting = (featured.length >= 3 ? featured : enWriting).slice(0, 3).map((p) => {
+  const slug = entrySlug(p);
+  const translated = lang === 'en' ? p : localised.get(slug);
+  return {
+    entry: translated ?? p,
+    href: translated ? localePath(`/writing/${slug}`, lang) : `/writing/${slug}`,
+  };
+});
+
+const allWork = await getCollection('work', ({ data }) => !data.draft);
+const enWork = filterByLang(allWork, 'en').sort((a, b) => a.data.order - b.data.order);
+const localisedWork = bySlug(filterByLang(allWork, lang));
+
+const featuredWork = enWork.filter((p) => p.data.featured);
+const recentWork = (featuredWork.length >= 2 ? featuredWork : enWork).slice(0, 3).map((p) => {
+  const slug = entrySlug(p);
+  const translated = lang === 'en' ? p : localisedWork.get(slug);
+  return {
+    entry: translated ?? p,
+    href: translated ? localePath(`/work/${slug}`, lang) : `/work/${slug}`,
+  };
+});
+
+const facts = [
+  t('home.stat.role'),
+  t('home.stat.education'),
+  t('home.stat.publication'),
+  t('home.stat.location'),
+];
+---
+
+<Base title={title}>
+  <!-- Hero -->
+  <section class="hero-wash container-x pt-16 pb-20 sm:pt-24 sm:pb-28">
+    <div class="measure-wide">
+      <p class="kicker" data-enter style="--enter-index: 0">{t('home.kicker')}</p>
+
+      <h1
+        class="display mt-5 text-[clamp(2.6rem,5vw+1rem,5rem)]"
+        data-enter
+        style="--enter-index: 1"
+      >
+        {t('home.title.before')}<span class="display-italic">{t('home.title.italic')}</span
+        >{t('home.title.after')}
+      </h1>
+
+      <p class="dek measure mt-7" data-enter style="--enter-index: 2">
+        {t('home.dek')}
+      </p>
+
+      <div
+        class="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3 text-[14px] uppercase tracking-[0.14em]"
+        data-enter
+        style="--enter-index: 3"
+      >
+        <a href={localePath('/writing', lang)} class="link-grow text-[var(--color-accent)]">
+          {t('home.cta.writing')}
+        </a>
+        <a
+          href={localePath('/work', lang)}
+          class="link-grow text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-ink)]"
+        >
+          {t('home.cta.work')}
+        </a>
+        <a
+          href={localePath('/about', lang)}
+          class="link-grow text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-ink)]"
+        >
+          {t('home.cta.about')}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Now: what's actually on the desk right now, plus the four facts
+       a recruiter or collaborator scans for first. -->
+  <section class="container-x pb-24" aria-labelledby="now-heading">
+    <div
+      class="panel grid gap-8 p-7 sm:grid-cols-[140px_1fr] sm:p-9"
+      data-reveal
+    >
+      <h2 id="now-heading" class="kicker">{t('home.now.heading')}</h2>
+      <div>
+        <p class="measure text-[17px] leading-relaxed">{t('home.now.body')}</p>
+        <ul
+          class="mono mt-6 grid gap-x-8 gap-y-2 text-[12px] uppercase tracking-[0.13em] text-[var(--color-ink-faint)] sm:grid-cols-2"
+        >
+          {facts.map((fact) => <li>{fact}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Writing -->
+  <section class="container-x pb-24" aria-labelledby="writing-heading">
+    <SectionHeader
+      id="writing-heading"
+      title={t('section.recentWriting')}
+      href={localePath('/writing', lang)}
+      cta={t('cta.allEssays')}
+    />
+    <div data-reveal-group>
+      {
+        recentWriting.map(({ entry, href }, i) => (
+          <EssayCard
+            href={href}
+            title={entry.data.title}
+            dek={entry.data.dek}
+            date={entry.data.date}
+            minutes={minutesOf(entry.body ?? '')}
+            featured={i === 0}
+          />
+        ))
+      }
+      <div class="border-t border-[var(--color-rule)]"></div>
+    </div>
+  </section>
+
+  <!-- Work -->
+  <section class="container-x pb-24" aria-labelledby="work-heading">
+    <SectionHeader
+      id="work-heading"
+      title={t('section.selectedWork')}
+      href={localePath('/work', lang)}
+      cta={t('cta.allProjects')}
+    />
+    <div data-reveal-group>
+      {
+        recentWork.map(({ entry, href }) => (
+          <WorkCard
+            href={href}
+            title={entry.data.title}
+            role={entry.data.role}
+            period={entry.data.period}
+            summary={entry.data.summary}
+            stack={entry.data.stack}
+          />
+        ))
+      }
+      <div class="border-t border-[var(--color-rule)]"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="container-x pb-24" aria-labelledby="about-heading">
+    <div
+      class="section-rule grid gap-10 pt-10 sm:grid-cols-[180px_1fr]"
+      data-reveal
+    >
+      <h2 id="about-heading" class="label">{t('section.about')}</h2>
+      <div class="measure">
+        <p class="display text-[clamp(1.6rem,2vw+0.8rem,2.2rem)] leading-tight">
+          {t('home.about.body.1')}
+        </p>
+        <p class="mt-5 text-[17px] leading-[1.7] text-[var(--color-ink-soft)]">
+          {t('home.about.body.2')}
+        </p>
+        <p class="mt-7">
+          <a
+            href={localePath('/about', lang)}
+            class="mono link-rule text-[14px] uppercase tracking-[0.14em] text-[var(--color-accent)]"
+          >
+            {t('cta.readMore')}
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="container-x pb-32" aria-labelledby="contact-heading">
+    <div
+      class="section-rule grid gap-10 pt-10 sm:grid-cols-[180px_1fr]"
+      data-reveal
+    >
+      <h2 id="contact-heading" class="label">{t('section.contact')}</h2>
+      <div class="measure">
+        <p class="display text-[clamp(1.6rem,2vw+0.8rem,2.2rem)] leading-tight">
+          {t('home.contact.headline.before')}<span class="display-italic"
+            >{t('home.contact.headline.italic')}</span
+          >
+        </p>
+        <p class="mt-6 text-[17px] leading-[1.7] text-[var(--color-ink-soft)]">
+          {t('home.contact.body')}
+        </p>
+        <ul class="mt-7 space-y-2 text-[16px]">
+          <li>
+            <a class="link-rule text-[var(--color-accent)]" href="mailto:rojandahal1026@gmail.com">
+              rojandahal1026@gmail.com
+            </a>
+          </li>
+          <li>
+            <a
+              class="link-grow text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-ink)]"
+              href="https://www.linkedin.com/in/rojandahal/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              linkedin.com/in/rojandahal
+            </a>
+          </li>
+          <li>
+            <a
+              class="link-grow text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-ink)]"
+              href="https://github.com/DahalRojan"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              github.com/DahalRojan
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>

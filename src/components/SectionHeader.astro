@@ -1,0 +1,28 @@
+---
+interface Props {
+  /** Ties the heading to its section's aria-labelledby. */
+  id?: string;
+  title: string;
+  href?: string;
+  cta?: string;
+}
+
+const { id, title, href, cta } = Astro.props;
+---
+
+<header
+  class="section-rule mb-8 flex items-baseline justify-between gap-6 pt-6"
+  data-reveal
+>
+  <h2 id={id} class="label">{title}</h2>
+  {
+    href && cta && (
+      <a
+        href={href}
+        class="mono link-grow shrink-0 text-[12px] uppercase tracking-[0.14em] text-[var(--color-accent)]"
+      >
+        {cta}
+      </a>
+    )
+  }
+</header>

@@ -21,21 +21,4 @@ export function localePath(path: string, lang: Lang): string {
   return clean === '/' ? '/ne/' : `/ne${clean}`;
 }
 
-/** Build the URL of the same page in the OTHER language. */
-export function altLangPath(url: URL, currentLang: Lang): string {
-  const path = url.pathname;
-  if (currentLang === 'ne') {
-    // strip /ne prefix
-    const stripped = path.replace(/^\/ne(\/|$)/, '/');
-    return stripped.endsWith('/') && stripped !== '/' ? stripped : stripped || '/';
-  }
-  // currently en — prefix /ne
-  return path === '/' ? '/ne/' : `/ne${path}`;
-}
-
-/** True when a string contains any Devanagari character. */
-export function hasDevanagari(s: string): boolean {
-  return /[ऀ-ॿ]/.test(s);
-}
-
 export type { Lang } from './ui';

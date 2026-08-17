@@ -1,0 +1,107 @@
+---
+import Listing from '../../layouts/Listing.astro';
+import { useTranslations, type Lang } from '../../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<Listing
+  title={t('search.title')}
+  description={t('search.intro')}
+  kicker={t('search.kicker')}
+  intro={t('search.intro')}
+>
+  {/* Pagefind ships its own UI bundle. It is loaded from the built
+      index in /pagefind, which only exists after `astro build` runs
+      the indexer — see the postbuild script. */}
+  <div id="search" data-pagefind-ui data-reveal></div>
+
+  <noscript>
+    <p class="text-[16px] text-[var(--color-ink-soft)]">{t('search.noJs')}</p>
+  </noscript>
+</Listing>
+
+<script>
+  // Loaded lazily and only on this page. The import is dynamic because
+  // /pagefind/pagefind-ui.js is generated at build time and does not
+  // exist during `astro dev` until a build has run at least once.
+  const mount = async () => {
+    const el = document.querySelector('#search');
+    if (!el || el.childElementCount > 0) return;
+
+    const placeholder =
+      document.documentElement.lang === 'ne'
+        ? 'लेख र काम खोज्नुहोस्…'
+        : 'Search essays and work…';
+
+    // Held in a variable and marked @vite-ignore so the bundler leaves
+    // the specifier alone — the file is emitted by the Pagefind
+    // indexer after the Astro build, so it cannot be resolved here.
+    const bundle = '/pagefind/pagefind-ui.js';
+
+    try {
+      const { PagefindUI } = await import(/* @vite-ignore */ bundle);
+      new PagefindUI({
+        element: '#search',
+        showSubResults: true,
+        showImages: false,
+        excerptLength: 28,
+        translations: { placeholder },
+      });
+    } catch {
+      el.innerHTML =
+        '<p class="text-[16px] text-[var(--color-ink-soft)]">Search index unavailable — run a production build to generate it.</p>';
+    }
+  };
+
+  document.addEventListener('astro:page-load', mount);
+</script>
+
+<style is:global>
+  /* Pagefind's default UI is neutral by design; these variables pull it
+     into the site's type and palette rather than restyling it wholesale. */
+  #search {
+    --pagefind-ui-scale: 0.85;
+    --pagefind-ui-primary: var(--color-ink);
+    --pagefind-ui-text: var(--color-ink);
+    --pagefind-ui-background: var(--color-paper);
+    --pagefind-ui-border: var(--color-rule);
+    --pagefind-ui-tag: var(--color-paper-raised);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 8px;
+    --pagefind-ui-font: var(--font-sans);
+  }
+
+  #search .pagefind-ui__search-input {
+    font-family: var(--font-sans);
+    background: var(--color-paper-raised);
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+  #search .pagefind-ui__search-input:focus-visible {
+    border-color: var(--color-accent);
+  }
+
+  #search .pagefind-ui__result-title a {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  #search .pagefind-ui__result-title a:hover {
+    color: var(--color-accent);
+  }
+
+  #search mark {
+    background: color-mix(in oklab, var(--color-accent) 22%, transparent);
+    color: inherit;
+    border-radius: 2px;
+  }
+
+  #search .pagefind-ui__result {
+    border-top: 1px solid var(--color-rule);
+  }
+</style>

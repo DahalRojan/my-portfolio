@@ -1,0 +1,84 @@
+---
+import Listing from '../../layouts/Listing.astro';
+import EssayCard from '../EssayCard.astro';
+import { getCollection } from 'astro:content';
+import { minutesOf } from '../../lib/reading';
+import { entrySlug, filterByLang, bySlug } from '../../lib/content';
+import { useTranslations, localePath, type Lang } from '../../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const all = await getCollection('writing', ({ data }) => !data.draft);
+const enPosts = filterByLang(all, 'en').sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const localised = bySlug(filterByLang(all, lang));
+
+const posts = enPosts.map((p) => {
+  const slug = entrySlug(p);
+  const translated = lang === 'en' ? p : localised.get(slug);
+  return {
+    entry: translated ?? p,
+    href: translated ? localePath(`/writing/${slug}`, lang) : `/writing/${slug}`,
+  };
+});
+
+
+// Group by year so a growing archive stays scannable.
+const byYear = posts.reduce<Map<number, typeof posts>>((acc, item) => {
+  const year = item.entry.data.date.getFullYear();
+  (acc.get(year) ?? acc.set(year, []).get(year)!).push(item);
+  return acc;
+}, new Map());
+const years = [...byYear.keys()].sort((a, b) => b - a);
+---
+
+<Listing
+  title={t('writing.title')}
+  description={t('writing.intro')}
+  kicker={t('writing.kicker')}
+  intro={t('writing.intro')}
+>
+
+  {
+    years.map((year) => (
+      <section class="mb-14" aria-labelledby={`year-${year}`}>
+        <h2
+          id={`year-${year}`}
+          class="mono tabnums mb-2 text-[13px] tracking-[0.14em] text-[var(--color-ink-faint)]"
+        >
+          {year}
+        </h2>
+        <div data-reveal-group>
+          {byYear.get(year)!.map(({ entry, href }) => (
+            <EssayCard
+              href={href}
+              title={entry.data.title}
+              dek={entry.data.dek}
+              date={entry.data.date}
+              minutes={minutesOf(entry.body ?? '')}
+            />
+          ))}
+          <div class="border-t border-[var(--color-rule)]" />
+        </div>
+      </section>
+    ))
+  }
+
+  <p class="mt-10 text-[14px] text-[var(--color-ink-soft)]">
+    {t('writing.subscribe.before')}<a
+      class="link-rule text-[var(--color-accent)]"
+      href={lang === 'ne' ? '/ne/rss.xml' : '/rss.xml'}>{t('writing.subscribe.rss')}</a
+    >{t('writing.subscribe.middle')}<a
+      class="link-rule"
+      href="https://www.linkedin.com/in/rojandahal/"
+      target="_blank"
+      rel="noopener noreferrer">{t('writing.subscribe.linkedin')}</a
+    >{t('writing.subscribe.after')}
+  </p>
+</Listing>

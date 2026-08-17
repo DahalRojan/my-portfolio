@@ -1,0 +1,50 @@
+---
+import Listing from '../../layouts/Listing.astro';
+import WorkCard from '../WorkCard.astro';
+import { getCollection } from 'astro:content';
+import { entrySlug, filterByLang, bySlug } from '../../lib/content';
+import { useTranslations, localePath, type Lang } from '../../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const all = await getCollection('work', ({ data }) => !data.draft);
+const enWork = filterByLang(all, 'en').sort((a, b) => a.data.order - b.data.order);
+const localised = bySlug(filterByLang(all, lang));
+
+const projects = enWork.map((p) => {
+  const slug = entrySlug(p);
+  const translated = lang === 'en' ? p : localised.get(slug);
+  return {
+    entry: translated ?? p,
+    href: translated ? localePath(`/work/${slug}`, lang) : `/work/${slug}`,
+  };
+});
+---
+
+<Listing
+  title={t('work.title')}
+  description={t('work.intro')}
+  kicker={t('work.kicker')}
+  intro={t('work.intro')}
+>
+  <div data-reveal-group>
+    {
+      projects.map(({ entry, href }) => (
+        <WorkCard
+          href={href}
+          title={entry.data.title}
+          role={entry.data.role}
+          period={entry.data.period}
+          summary={entry.data.summary}
+          stack={entry.data.stack}
+        />
+      ))
+    }
+    <div class="border-t border-[var(--color-rule)]"></div>
+  </div>
+</Listing>

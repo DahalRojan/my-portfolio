@@ -1,0 +1,50 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+interface Adjacent {
+  href: string;
+  title: string;
+}
+
+interface Props {
+  prev?: Adjacent;
+  next?: Adjacent;
+}
+
+const { prev, next } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+{
+  (prev || next) && (
+    <nav
+      class="mt-16 grid gap-px overflow-hidden rounded-lg border border-[var(--color-rule)] bg-[var(--color-rule)] sm:grid-cols-2"
+      aria-label={t('post.related')}
+    >
+      {/* The empty div keeps a lone "next" card in the right column. */}
+      {prev ? (
+        <a href={prev.href} class="post-nav__item group bg-[var(--color-paper)] p-6 transition-colors hover:bg-[var(--color-paper-raised)]">
+          <span class="label">← {t('post.prev')}</span>
+          <span class="display mt-2 block text-[1.2rem] leading-snug transition-colors group-hover:text-[var(--color-accent)]">
+            {prev.title}
+          </span>
+        </a>
+      ) : (
+        <div class="hidden bg-[var(--color-paper)] sm:block" />
+      )}
+
+      {next && (
+        <a
+          href={next.href}
+          class="post-nav__item group bg-[var(--color-paper)] p-6 transition-colors hover:bg-[var(--color-paper-raised)] sm:text-right"
+        >
+          <span class="label">{t('post.next')} →</span>
+          <span class="display mt-2 block text-[1.2rem] leading-snug transition-colors group-hover:text-[var(--color-accent)]">
+            {next.title}
+          </span>
+        </a>
+      )}
+    </nav>
+  )
+}

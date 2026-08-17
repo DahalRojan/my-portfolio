@@ -1,0 +1,62 @@
+---
+import { useTranslations, getLangFromUrl } from '../i18n/utils';
+import type { Heading } from '../lib/taxonomy';
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+{
+  headings.length > 1 && (
+    <nav class="toc" data-toc aria-labelledby="toc-heading">
+      <h2 id="toc-heading" class="label">
+        {t('toc.title')}
+      </h2>
+      <ol class="mt-4 space-y-2 text-[14px] leading-snug">
+        {headings.map((h) => (
+          <li class:list={[h.depth === 3 && 'pl-4']}>
+            <a
+              href={`#${h.slug}`}
+              class="toc__link block text-[var(--color-ink-faint)] transition-colors hover:text-[var(--color-ink)]"
+            >
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    position: sticky;
+    /* Clears the sticky header with a little breathing room. */
+    top: 6rem;
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
+    padding-inline-start: 1rem;
+    border-inline-start: 1px solid var(--color-rule);
+  }
+
+  /* The active marker is a border on the link, so nothing shifts as
+     the reader scrolls between sections. */
+  .toc__link {
+    margin-inline-start: -1rem;
+    padding-inline-start: 1rem;
+    border-inline-start: 2px solid transparent;
+    transition:
+      color var(--dur-1) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out);
+  }
+
+  .toc__link[data-active] {
+    color: var(--color-accent);
+    border-inline-start-color: var(--color-accent);
+  }
+</style>

@@ -1,7 +1,19 @@
 ---
 import Base from './Base.astro';
 import PostMeta from '../components/PostMeta.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import PostNav from '../components/PostNav.astro';
+import EssayCard from '../components/EssayCard.astro';
 import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
+import { tocHeadings, type Heading } from '../lib/taxonomy';
+import { minutesOf } from '../lib/reading';
+import { entrySlug } from '../lib/content';
+import type { CollectionEntry } from 'astro:content';
+
+interface Adjacent {
+  href: string;
+  title: string;
+}
 
 interface Props {
   title: string;
@@ -11,12 +23,42 @@ interface Props {
   tags?: string[];
   minutes: number;
   ogImage?: string;
+  headings?: Heading[];
+  prev?: Adjacent;
+  next?: Adjacent;
+  related?: CollectionEntry<'writing'>[];
 }
 
-const { title, dek, date, updated, tags = [], minutes, ogImage } = Astro.props;
+const {
+  title,
+  dek,
+  date,
+  updated,
+  tags = [],
+  minutes,
+  ogImage,
+  headings = [],
+  prev,
+  next,
+  related = [],
+} = Astro.props;
+
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const isoDate = date.toISOString();
+const toc = tocHeadings(headings);
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: dek,
+  datePublished: date.toISOString(),
+  ...(updated && { dateModified: updated.toISOString() }),
+  author: { '@type': 'Person', name: 'Rojan Dahal', url: 'https://rojandahal.com' },
+  keywords: tags.join(', '),
+  mainEntityOfPage: canonical,
+};
 ---
 
 <Base
@@ -24,38 +66,90 @@ const isoDate = date.toISOString();
   description={dek}
   ogImage={ogImage}
   ogType="article"
-  publishedTime={isoDate}
+  publishedTime={date.toISOString()}
+  modifiedTime={updated?.toISOString()}
+  progress
 >
-  <article class="container-x py-16 sm:py-24">
-    <header class="measure mb-12" data-reveal>
-      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
-        {t('meta.essay')}
-      </p>
-      <h1 class="display mt-3 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
+
+  {/* Pagefind indexes only what's marked, so the nav, footer, and the
+      related-reading block below stay out of the search corpus. */}
+  <article
+    class="container-x py-14 sm:py-20"
+    data-pagefind-body
+    data-pagefind-meta={`kind:${t('meta.essay')}`}
+  >
+    <header class="measure-wide" data-enter>
+      <p class="kicker">{t('meta.essay')}</p>
+      <h1 class="display mt-4 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">
         {title}
       </h1>
-      {dek && <p class="dek mt-5">{dek}</p>}
-      <div class="mt-8 border-t border-[var(--color-rule)] pt-4">
-        <PostMeta date={date} updated={updated} tags={tags} minutes={minutes} />
+      {dek && <p class="dek measure mt-5">{dek}</p>}
+      <div class="mt-8 border-t border-[var(--color-rule)] pt-5">
+        <PostMeta date={date} updated={updated} minutes={minutes} />
       </div>
     </header>
 
-    <div class="prose has-drop-cap" data-reveal>
-      <slot />
+    {/* The TOC gets its own column only when there's room for it beside
+        the measure; below that it would compete with the text. */}
+    <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,var(--measure))_1fr] lg:gap-16">
+      <div class="prose has-drop-cap min-w-0">
+        <slot />
+      </div>
+
+      {
+        toc.length > 1 && (
+          <aside class="order-first hidden lg:order-none lg:block">
+            <TableOfContents headings={toc} />
+          </aside>
+        )
+      }
     </div>
 
-    <hr />
+    <footer class="measure-wide" data-pagefind-ignore>
+      <div
+        class="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-rule)] pt-6 text-[14px] text-[var(--color-ink-soft)]"
+      >
+        <a href={localePath('/writing', lang)} class="link-grow uppercase tracking-[0.14em]">
+          {t('cta.backToWriting')}
+        </a>
+        <span>
+          {t('cta.foundMistake.before')}
+          <a
+            class="link-rule text-[var(--color-accent)]"
+            href={`mailto:rojandahal1026@gmail.com?subject=${encodeURIComponent(`re: ${title}`)}`}
+          >
+            {t('cta.foundMistake.link')}
+          </a>{t('cta.foundMistake.after')}
+        </span>
+      </div>
 
-    <div class="measure mt-10 flex flex-wrap items-baseline justify-between gap-4 text-[14px] text-[var(--color-ink-soft)]">
-      <a href={localePath('/writing', lang)} class="link-grow uppercase tracking-[0.14em]">
-        {t('cta.backToWriting')}
-      </a>
-      <span>
-        {t('cta.foundMistake.before')}
-        <a class="link-rule text-[var(--color-rust)]" href={`mailto:rojandahal1026@gmail.com?subject=re: ${title}`}>
-          {t('cta.foundMistake.link')}
-        </a>{t('cta.foundMistake.after')}
-      </span>
-    </div>
+      <PostNav prev={prev} next={next} />
+
+      {
+        related.length > 0 && (
+          <section class="mt-20" aria-labelledby="related-heading">
+            <h2
+              id="related-heading"
+              class="label border-t border-[var(--color-rule-strong)] pt-6"
+            >
+              {t('post.related')}
+            </h2>
+            <div class="mt-6" data-reveal-group>
+              {related.map((post) => (
+                <EssayCard
+                  href={localePath(`/writing/${entrySlug(post)}`, lang)}
+                  title={post.data.title}
+                  dek={post.data.dek}
+                  date={post.data.date}
+                  minutes={minutesOf(post.body ?? '')}
+                />
+              ))}
+              <div class="border-t border-[var(--color-rule)]" />
+            </div>
+          </section>
+        )
+      }
+    </footer>
   </article>
 </Base>

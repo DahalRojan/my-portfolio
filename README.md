@@ -1,104 +1,129 @@
 # rojandahal.com
 
-Personal portfolio of **Rojan Dahal** — AI / ML Engineer · Production AI Systems.
+Personal site and writing of **Rojan Dahal** — AI / ML Engineer.
 
-The site is a **scroll-driven WebGL experience** of the Gatekeeper architecture I'm currently shipping at TitanCloud. Visitors scroll *through* a 3D pipeline (4 translucent gate slabs, a document particle, a Bedrock orb) while reading my work. The metaphor is the work.
+An editorial, text-first site: warm paper, one accent, a serif display face,
+and motion that stays out of the way. Content lives in MDX; everything is
+prerendered to static HTML.
 
 ## Stack
 
-| Layer            | Choice                                                                |
-| ---------------- | --------------------------------------------------------------------- |
-| Framework        | **Astro 5** (static, React islands)                                   |
-| Type system      | **TypeScript** strict                                                 |
-| Styling          | **Tailwind CSS v4** (Vite plugin)                                     |
-| 3D               | **three.js + React Three Fiber + drei** (lazy-loaded chunk)           |
-| Motion           | **GSAP + ScrollTrigger** (camera choreography) · **Lenis** (smooth scroll) |
-| Type             | **Instrument Serif** (display) · **IBM Plex Sans** (body) · **JetBrains Mono** (mono) — all self-hosted via `@fontsource` |
-| Deploy           | **Cloudflare Pages**, auto-deploy on push to `main`                   |
+| Layer      | Choice                                                                   |
+| ---------- | ------------------------------------------------------------------------ |
+| Framework  | **Astro 5** — static output, zero framework JS on the page               |
+| Type system| **TypeScript** strict                                                    |
+| Styling    | **Tailwind CSS v4** (Vite plugin) over a custom token layer              |
+| Search     | **Pagefind** — index built at deploy time, runs in the browser           |
+| Type       | **Instrument Serif** (display) · **IBM Plex Sans** (body) · **JetBrains Mono** — self-hosted via `@fontsource` |
+| OG images  | **Satori + resvg** — one card per entry, rendered at build time          |
+| Deploy     | **Cloudflare Pages**, auto-deploy on push to `main`                      |
 
 ## Running locally
 
 ```bash
 npm install
 npm run dev       # http://localhost:4321
-npm run build     # production output → dist/
+npm run build     # static output → dist/ (also writes OG images + search index)
 npm run preview   # serve dist/ locally
 ```
+
+`npm run build` runs three steps in order: `astro build`, then `npm run og`
+(OG cards + the iOS touch icon), then `npm run index` (Pagefind). Search and
+share images only exist after a full build — `astro dev` alone won't have them.
 
 ## Project layout
 
 ```
 src/
-  pages/index.astro              # single-page site
-  layouts/Base.astro             # head, meta, OG, JSON-LD
-  scene/
-    PipelineScene.tsx            # the WebGL scene (Three + R3F + custom shader)
-    PipelineFallback.astro       # static SVG used under prefers-reduced-motion
+  layouts/
+    Base.astro           # head, meta, theme bootstrap, motion runtime
+    Post.astro           # essay: TOC, progress, prev/next, related
+    CaseStudy.astro      # work entry
+    Listing.astro        # shared index-page frame
   components/
-    Nav.astro
-    Hero.astro
-    SectionPanel.astro           # shared header + body wrapper
-    About.astro                  # 01 / Rules
-    Signals.astro                # 02 / Signals
-    CaseCard.astro
-    Work.astro                   # 03 / Inference
-    Research.astro               # 04 / Decision
-    Contact.astro                # 05 / Output
-    SceneHost.astro              # mounts scene OR fallback based on motion pref
+    Nav.astro            # sticky header, mobile disclosure, language switch
+    Footer.astro
+    ThemeToggle.astro
+    EssayCard.astro · WorkCard.astro · SectionHeader.astro
+    TableOfContents.astro · PostMeta.astro · PostNav.astro
+    pages/               # per-route page bodies, shared across locales
+      HomePage.astro · WritingPage.astro · WorkPage.astro · SearchPage.astro
   content/
-    cases.ts                     # 4 case studies (TitanCloud, Gannon GA, Gannon Research, BitsKraft)
-    skills.ts                    # 5 skill rows
-    publications.ts              # NAMRC paper + certifications
+    writing/en/*.mdx     # essays
+    work/en/*.mdx        # case studies
   lib/
-    smooth-scroll.ts             # Lenis + GSAP ticker
-  styles/global.css              # tokens, type, helpers
-public/
-  resume.pdf                     # mirror of assets/Resume_Rojan_Dahal.pdf
-  front.jpg · icon2.png · og.svg · robots.txt
-docs/superpowers/specs/2026-05-16-portfolio-redesign-design.md   # design spec
+    alt-lang.ts          # language-switch target, translation-aware
+    taxonomy.ts          # related posts, heading filter
+    content.ts           # locale-prefixed collection ids
+    reading.ts
+  i18n/
+    ui.ts                # every string, both locales
+  styles/global.css      # tokens, motion system, prose
+scripts/
+  og-images.mjs          # build-time OG cards
 ```
 
 ## Editing content
 
-All copy is typed data — no JSX to touch.
+Essays are MDX files under `src/content/writing/en/`. Frontmatter:
 
-| Need to change            | File                              |
-| ------------------------- | --------------------------------- |
-| Case studies              | `src/content/cases.ts`            |
-| Skills (signal rows)      | `src/content/skills.ts`           |
-| Publication + certs       | `src/content/publications.ts`     |
-| Hero copy                 | `src/components/Hero.astro`       |
-| About prose               | `src/components/About.astro`      |
-| Contact / footer          | `src/components/Contact.astro`    |
-| 3D scene (slabs, camera)  | `src/scene/PipelineScene.tsx`     |
+```yaml
+---
+title: "..."
+dek: "One sentence that appears under the title and in previews."
+date: 2026-08-17
+tags: ["production-ml", "cost"]   # not displayed; used for related posts + RSS
+featured: true                    # surfaces on the home page
+draft: false
+---
+```
 
-## Performance
+Case studies live in `src/content/work/en/` and additionally take `role`,
+`period`, `order`, `summary`, and `stack`.
 
-| Asset                                       | Size (gz)   |
-| ------------------------------------------- | ----------- |
-| HTML (`/`)                                  | ~10 KB      |
-| First-paint JS (Astro + Lenis + ScrollTrigger + React shell) | ~113 KB     |
-| **Lazy 3D chunk** (Three + R3F + drei + scene) | **~243 KB** |
+UI strings are **not** inlined in components — they live in `src/i18n/ui.ts`
+so English and Nepali stay in step. A missing Nepali key falls back to English
+rather than rendering the key name.
 
-The 3D chunk hydrates `client:visible`, so the hero text and the section content render with the SSR'd HTML. A static SVG fallback is rendered under `prefers-reduced-motion: reduce`.
+### Adding a Nepali translation
+
+Drop a file with the **same slug** under the `ne/` directory of the same
+collection. The site picks it up automatically: the home page and index link
+to the translation where one exists, the language switch resolves to the
+translated page, and untranslated pieces fall back to the section index rather
+than 404ing (`src/lib/alt-lang.ts`).
+
+## Design system
+
+Tokens live at the top of `src/styles/global.css`.
+
+- **Colour** — one accent, three warm surfaces, four ink weights. Light and
+  dark are defined as complete sets; dark is applied from both
+  `[data-theme="dark"]` and `prefers-color-scheme`, so system users and
+  explicit choosers both get it.
+- **Motion** — four durations (140 / 240 / 420 / 700 ms) and three easings.
+  Reveal-on-scroll is `IntersectionObserver`, one-way, with a head-script
+  failsafe that restores content if the main bundle fails to load. The
+  reading-progress bar uses a CSS scroll timeline where available.
+- **Reduced motion** — `prefers-reduced-motion: reduce` disables entrances,
+  view transitions, smooth scrolling, and the progress bar.
 
 ## Accessibility
 
-- WCAG 2.2 AA contrast in dark mode.
-- `prefers-reduced-motion`: 3D scene + smooth scroll both disabled; the SVG pipeline fallback takes over.
-- Full keyboard navigation. Skip-to-content not implemented (single-page site, no header navigation interaction required).
-- Phone number masked (`+1 (220) 238-XX-XX`); email rendered in full.
+- Skip link, landmarks, and `aria-current` on the active nav item.
+- Visible focus rings on every interactive element.
+- The mobile menu is a native `<details>` disclosure — keyboard-operable, and
+  it keeps working across view transitions without JS.
+- Content is never gated behind scroll: if the reveal script doesn't run,
+  everything renders at full opacity.
+- Theme toggle picks its icon in CSS, so it is correct before scripts run.
 
 ## Deploy — Cloudflare Pages
 
-The repo is auto-deployed by **Cloudflare Pages** on push to `main`.
-
 - Build command: `npm run build`
 - Output directory: `dist`
-- Node version: 20 or newer
-
-`.gitignore` blocks `.claude/`, `.agents/`, `.remember/`, `node_modules/`, `.astro/`, `dist/`, and the legacy `index.html` + `assets/css|js|vendors`. Only production source ships to Cloudflare.
+- Node: 20+ (pinned in `.nvmrc` / `.node-version`)
 
 ## License
 
-Source MIT. Resume PDF, portrait, and personal copy © Rojan Dahal.
+Source MIT. Résumé PDF, portrait, and personal writing © Rojan Dahal.

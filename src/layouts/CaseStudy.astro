@@ -1,0 +1,77 @@
+---
+import Base from './Base.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
+import { tocHeadings, type Heading } from '../lib/taxonomy';
+
+interface Props {
+  title: string;
+  summary: string;
+  role: string;
+  period: string;
+  stack?: string[];
+  headings?: Heading[];
+  ogImage?: string;
+}
+
+const { title, summary, role, period, stack = [], headings = [], ogImage } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const toc = tocHeadings(headings);
+---
+
+<Base title={title} description={summary} ogType="article" ogImage={ogImage} progress>
+  <article
+    class="container-x py-14 sm:py-20"
+    data-pagefind-body
+    data-pagefind-meta={`kind:${t('meta.caseStudy')}`}
+  >
+    <header class="measure-wide" data-enter>
+      <p class="kicker">{t('meta.caseStudy')} &middot; {role}</p>
+      <h1 class="display mt-4 text-[clamp(2.2rem,4vw+1rem,3.6rem)]">{title}</h1>
+      <p class="dek measure mt-5">{summary}</p>
+
+      <dl
+        class="mt-8 grid gap-x-8 gap-y-3 border-t border-[var(--color-rule)] pt-5 text-[14px] sm:grid-cols-[120px_1fr]"
+      >
+        <dt class="label">{t('meta.period')}</dt>
+        <dd class="text-[var(--color-ink-soft)]">{period}</dd>
+
+        {
+          stack.length > 0 && (
+            <>
+              <dt class="label">{t('meta.stack')}</dt>
+              <dd class="text-[var(--color-ink-soft)]">{stack.join(' · ')}</dd>
+            </>
+          )
+        }
+      </dl>
+    </header>
+
+    <div class="mt-14 grid gap-12 lg:grid-cols-[minmax(0,var(--measure))_1fr] lg:gap-16">
+      <div class="prose min-w-0">
+        <slot />
+      </div>
+
+      {
+        toc.length > 1 && (
+          <aside class="hidden lg:block">
+            <TableOfContents headings={toc} />
+          </aside>
+        )
+      }
+    </div>
+
+    <div
+      class="measure-wide mt-16 flex flex-wrap items-baseline justify-between gap-4 border-t border-[var(--color-rule)] pt-6 text-[14px] text-[var(--color-ink-soft)]"
+    >
+      <a href={localePath('/work', lang)} class="link-grow uppercase tracking-[0.14em]">
+        {t('cta.backToWork')}
+      </a>
+      <a href="mailto:rojandahal1026@gmail.com" class="link-rule text-[var(--color-accent)]">
+        {t('cta.getInTouch')}
+      </a>
+    </div>
+  </article>
+</Base>

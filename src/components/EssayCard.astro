@@ -7,11 +7,14 @@ interface Props {
   dek?: string;
   date: Date;
   minutes?: number;
+  /** Larger treatment for the first item in a list. */
+  featured?: boolean;
 }
 
-const { href, title, dek, date, minutes } = Astro.props;
+const { href, title, dek, date, minutes, featured = false } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
 const fmt = date.toLocaleDateString(lang === 'ne' ? 'ne-NP' : 'en-US', {
   month: 'short',
   day: 'numeric',
@@ -19,32 +22,79 @@ const fmt = date.toLocaleDateString(lang === 'ne' ? 'ne-NP' : 'en-US', {
 });
 ---
 
-<a
-  href={href}
-  class="group block border-t border-[var(--color-rule)] py-7"
-  data-reveal
->
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-10">
-    <div class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36">
+<article class="essay-card border-t border-[var(--color-rule)]" data-reveal>
+  <div class="relative flex flex-col gap-3 py-7 sm:flex-row sm:gap-10">
+    <div
+      class="mono flex shrink-0 gap-3 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] sm:w-36 sm:flex-col sm:gap-1"
+    >
       <time datetime={date.toISOString()} class="tabnums">{fmt}</time>
-      {minutes != null && <span class="ml-3 sm:ml-0 sm:block">{minutes} {t('meta.min')}</span>}
+      {minutes != null && <span class="tabnums">{minutes} {t('meta.min')}</span>}
     </div>
 
     <div class="flex-1">
-      <h3 class="display text-[clamp(1.4rem,1.5vw+0.8rem,1.85rem)] leading-tight transition-colors group-hover:text-[var(--color-rust)]">
-        {title}
+      <h3
+        class:list={[
+          'display leading-tight transition-colors',
+          featured
+            ? 'text-[clamp(1.8rem,2.4vw+1rem,2.6rem)]'
+            : 'text-[clamp(1.4rem,1.5vw+0.8rem,1.85rem)]',
+        ]}
+      >
+        {/* The stretched pseudo-element makes the whole card clickable
+            while keeping the tag links below independently focusable. */}
+        <a href={href} class="essay-card__link">{title}</a>
       </h3>
+
       {
         dek && (
-          <p class="mt-2 text-[16px] leading-snug text-[var(--color-ink-soft)]">
+          <p
+            class:list={[
+              'mt-2 leading-snug text-[var(--color-ink-soft)]',
+              featured ? 'text-[17px]' : 'text-[16px]',
+            ]}
+          >
             {dek}
           </p>
         )
       }
+
     </div>
 
-    <span class="mono shrink-0 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-rust)] sm:self-baseline">
-      {t('cta.read')}
+    <span
+      class="mono hidden shrink-0 self-start text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-faint)] transition-all sm:block"
+      aria-hidden="true"
+    >
+      <span class="essay-card__arrow inline-block">{t('cta.read')}</span>
     </span>
   </div>
-</a>
+</article>
+
+<style>
+  .essay-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .essay-card:hover h3,
+  .essay-card:focus-within h3 {
+    color: var(--color-accent);
+  }
+
+  .essay-card:hover .essay-card__arrow,
+  .essay-card:focus-within .essay-card__arrow {
+    color: var(--color-accent);
+    translate: 4px 0;
+  }
+
+  .essay-card__arrow {
+    transition:
+      translate var(--dur-2) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .essay-card__arrow { transition: color var(--dur-1); }
+    .essay-card:hover .essay-card__arrow { translate: none; }
+  }
+</style>

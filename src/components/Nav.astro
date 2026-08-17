@@ -1,5 +1,7 @@
 ---
-import { getLangFromUrl, useTranslations, altLangPath, localePath } from '../i18n/utils';
+import ThemeToggle from './ThemeToggle.astro';
+import { altLangHref } from '../lib/alt-lang';
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -16,29 +18,34 @@ const isActive = (matchPath: string) => {
   return stripped === matchPath || stripped.startsWith(matchPath + '/');
 };
 
-const altPath = altLangPath(Astro.url, lang);
+const altPath = await altLangHref(pathname, lang);
 ---
 
-<header class="border-b border-[var(--color-rule)]">
-  <div class="container-x flex items-baseline justify-between gap-6 py-5">
+<header
+  class="sticky top-0 z-50 border-b border-[var(--color-rule)] bg-[var(--color-paper)]/85 backdrop-blur-md supports-[backdrop-filter]:bg-[var(--color-paper)]/70"
+  transition:persist="site-header"
+>
+  <div class="container-x flex items-center justify-between gap-6 py-4">
     <a
       href={localePath('/', lang)}
-      class="display text-[1.5rem] leading-none tracking-tight link-grow"
+      class="display link-grow shrink-0 text-[1.4rem] leading-none tracking-tight"
     >
       Rojan Dahal
     </a>
 
-    <nav aria-label="Primary">
-      <ul class="flex items-baseline gap-5 text-[14px] uppercase tracking-[0.14em] sm:gap-7">
+    <!-- Desktop -->
+    <nav aria-label="Primary" class="hidden items-center gap-6 sm:flex">
+      <ul class="flex items-baseline gap-6 text-[14px] uppercase tracking-[0.14em]">
         {
           links.map(({ href, label, match }) => (
             <li>
               <a
                 href={href}
+                aria-current={isActive(match) ? 'page' : undefined}
                 class:list={[
-                  'link-grow',
+                  'link-grow transition-colors',
                   isActive(match)
-                    ? 'text-[var(--color-rust)]'
+                    ? 'text-[var(--color-accent)]'
                     : 'text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]',
                 ]}
               >
@@ -47,28 +54,123 @@ const altPath = altLangPath(Astro.url, lang);
             </li>
           ))
         }
-        <li class="hidden border-l border-[var(--color-rule)] pl-5 sm:block">
-          <a
-            href={altPath}
-            hreflang={lang === 'en' ? 'ne' : 'en'}
-            aria-label={t('lang.switch.aria')}
-            class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]"
-          >
-            {t('lang.switch.label')}
-          </a>
-        </li>
       </ul>
-    </nav>
-  </div>
 
-  <div class="container-x border-t border-[var(--color-rule)] py-2 text-center sm:hidden">
-    <a
-      href={altPath}
-      hreflang={lang === 'en' ? 'ne' : 'en'}
-      aria-label={t('lang.switch.aria')}
-      class="link-grow text-[12px] uppercase tracking-[0.14em] text-[var(--color-ink-soft)]"
-    >
-      {t('lang.switch.label')}
-    </a>
+      <div class="flex items-center gap-1 border-l border-[var(--color-rule)] pl-5">
+        <a
+          href={localePath('/search', lang)}
+          aria-label={t('nav.search')}
+          title={t('nav.search')}
+          class="grid size-9 place-items-center rounded-full text-[var(--color-ink-soft)] transition-colors hover:bg-[var(--color-paper-raised)] hover:text-[var(--color-ink)]"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.6-3.6"></path>
+          </svg>
+        </a>
+
+        <ThemeToggle />
+
+        <a
+          href={altPath}
+          hreflang={lang === 'en' ? 'ne' : 'en'}
+          aria-label={t('lang.switch.aria')}
+          class="ml-1 text-[13px] uppercase tracking-[0.14em] text-[var(--color-ink-soft)] link-grow hover:text-[var(--color-ink)]"
+        >
+          {lang === 'en' ? 'ने' : 'EN'}
+        </a>
+      </div>
+    </nav>
+
+    <!-- Mobile. <details> gives us an accessible disclosure with no JS,
+         which also means it keeps working across view transitions. -->
+    <details class="nav-mobile sm:hidden" name="nav">
+      <summary
+        class="grid size-10 cursor-pointer list-none place-items-center rounded-full text-[var(--color-ink)] transition-colors hover:bg-[var(--color-paper-raised)]"
+        aria-label={t('nav.menu')}
+      >
+        <svg class="nav-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+        <svg class="nav-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </summary>
+
+      <div class="nav-panel border-t border-[var(--color-rule)] bg-[var(--color-paper)]">
+        <nav aria-label="Primary mobile" class="container-x py-5">
+          <ul class="flex flex-col gap-1">
+            {
+              links.map(({ href, label, match }) => (
+                <li>
+                  <a
+                    href={href}
+                    aria-current={isActive(match) ? 'page' : undefined}
+                    class:list={[
+                      'block rounded-md px-2 py-3 text-[1.35rem] display transition-colors',
+                      isActive(match)
+                        ? 'text-[var(--color-accent)]'
+                        : 'text-[var(--color-ink)] hover:bg-[var(--color-paper-raised)]',
+                    ]}
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))
+            }
+            <li>
+              <a
+                href={localePath('/search', lang)}
+                class="block rounded-md px-2 py-3 display text-[1.35rem] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-paper-raised)]"
+              >
+                {t('nav.search')}
+              </a>
+            </li>
+          </ul>
+
+          <div class="mt-5 flex items-center justify-between border-t border-[var(--color-rule)] pt-4">
+            <a
+              href={altPath}
+              hreflang={lang === 'en' ? 'ne' : 'en'}
+              class="label link-grow hover:text-[var(--color-ink)]"
+            >
+              {t('lang.switch.label')}
+            </a>
+            <ThemeToggle />
+          </div>
+        </nav>
+      </div>
+    </details>
   </div>
 </header>
+
+<style>
+  /* Strip the native disclosure marker across engines. */
+  .nav-mobile > summary::-webkit-details-marker { display: none; }
+  .nav-mobile > summary::marker { content: ''; }
+
+  .nav-icon-close { display: none; }
+  .nav-mobile[open] > summary .nav-icon-open { display: none; }
+  .nav-mobile[open] > summary .nav-icon-close { display: block; }
+
+  /* The panel is positioned against the header, not the summary, so it
+     spans the full viewport width below the bar. */
+  .nav-panel {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    box-shadow: var(--shadow-lift);
+    animation: nav-drop var(--dur-3) var(--ease-out) both;
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+  }
+
+  @keyframes nav-drop {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-panel { animation: none; }
+  }
+</style>

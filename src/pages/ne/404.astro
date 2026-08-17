@@ -9,7 +9,7 @@ const t = useTranslations(lang);
 <Base title="भेटिएन" noindex>
   <section class="container-x py-32 sm:py-48">
     <div class="measure" data-reveal>
-      <p class="mono text-[12px] uppercase tracking-[0.18em] text-[var(--color-rust)]">
+      <p class="kicker">
         {t('404.kicker')}
       </p>
       <h1 class="display mt-3 text-[clamp(2.6rem,5vw+1rem,4.5rem)]">
@@ -19,7 +19,7 @@ const t = useTranslations(lang);
         {t('404.dek')}
       </p>
       <p class="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-[14px] uppercase tracking-[0.14em]">
-        <a href={localePath('/', lang)} class="link-rule text-[var(--color-rust)]">{t('404.home')}</a>
+        <a href={localePath('/', lang)} class="link-rule text-[var(--color-accent)]">{t('404.home')}</a>
         <a href={localePath('/writing', lang)} class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">{t('nav.writing')}</a>
         <a href={localePath('/work', lang)} class="link-grow text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">{t('nav.work')}</a>
       </p>
